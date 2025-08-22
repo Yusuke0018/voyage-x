@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
   try {
-    const { goal, milestones, tasks, currentProgress, apiKey } = await request.json();
+    const { goal, milestones, tasks, currentProgress, apiKey, aiModel } = await request.json();
 
     if (!apiKey) {
       return NextResponse.json({ error: 'API key required' }, { status: 400 });
@@ -36,7 +36,7 @@ JSONフォーマットで返してください。
         'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: 'gpt-3.5-turbo',
+        model: aiModel || 'gpt-5',
         messages: [
           {
             role: 'system',

@@ -12,14 +12,14 @@ import { DataExport } from '@/components/features/DataExport';
 export default function SettingsPage() {
   const [apiKey, setApiKey] = useState('');
   const [showApiKey, setShowApiKey] = useState(false);
-  const [aiModel, setAiModel] = useState('gpt-3.5-turbo');
+  const [aiModel, setAiModel] = useState('gpt-5');
   const [weeklyReviewDay, setWeeklyReviewDay] = useState(0);
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     // 設定を読み込み
     const savedApiKey = localStorage.getItem('openai_api_key') || '';
-    const savedModel = localStorage.getItem('ai_model') || 'gpt-3.5-turbo';
+    const savedModel = localStorage.getItem('ai_model') || 'gpt-5';
     const savedReviewDay = localStorage.getItem('weekly_review_day') || '0';
     
     setApiKey(savedApiKey);
@@ -95,6 +95,7 @@ export default function SettingsPage() {
                 onChange={(e) => setAiModel(e.target.value)}
                 className="w-full px-3 py-2 border rounded-md"
               >
+                <option value="gpt-5">GPT-5 (最新)</option>
                 <option value="gpt-4">GPT-4 (高精度)</option>
                 <option value="gpt-4-turbo">GPT-4 Turbo (高速)</option>
                 <option value="gpt-3.5-turbo">GPT-3.5 Turbo (経済的)</option>

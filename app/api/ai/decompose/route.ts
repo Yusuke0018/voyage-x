@@ -3,7 +3,7 @@ import OpenAI from 'openai';
 
 export async function POST(request: NextRequest) {
   try {
-    const { milestone, apiKey } = await request.json();
+    const { milestone, apiKey, aiModel } = await request.json();
     
     if (!apiKey) {
       return NextResponse.json(
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
 `;
     
     const completion = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
+      model: aiModel || 'gpt-5',
       messages: [
         {
           role: 'system',
