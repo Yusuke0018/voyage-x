@@ -10,15 +10,18 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Plus, Milestone as MilestoneIcon, Calendar, CheckCircle, Circle, Sparkles } from 'lucide-react';
 import { useDatabase } from '@/hooks/useDatabase';
-import type { Goal, Milestone } from '@/lib/types';
+import type { Goal, Milestone, Task } from '@/lib/types';
+import { TaskList } from '@/components/tasks/TaskList';
 
 function MilestonesContent() {
   const searchParams = useSearchParams();
   const goalId = searchParams.get('goalId');
   
-  const { isReady, getGoals, getMilestonesByGoal, createMilestone } = useDatabase();
+  const { isReady, getGoals, getMilestonesByGoal, createMilestone, getTasksByMilestone, createTask, updateTaskStatus } = useDatabase();
   const [goal, setGoal] = useState<Goal | null>(null);
   const [milestones, setMilestones] = useState<Milestone[]>([]);
+  const [tasks, setTasks] = useState<Record<string, Task[]>>({});
+  const [expandedMilestone, setExpandedMilestone] = useState<string | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [newMilestone, setNewMilestone] = useState({
     title: '',
@@ -65,6 +68,22 @@ function MilestonesContent() {
     });
   };
 
+  const loadTasksForMilestone = async (milestoneId: string) => {
+    const tasksData = await getTasksByMilestone(milestoneId);
+    setTasks(prev => ({ ...prev, [milestoneId]: tasksData }));
+  };
+
+  const handleToggleMilestone = async (milestoneId: string) => {
+    if (expandedMilestone === milestoneId) {
+      setExpandedMilestone(null);
+    } else {
+      setExpandedMilestone(milestoneId);
+      if (!tasks[milestoneId]) {
+        await loadTasksForMilestone(milestoneId);
+      }
+    }
+  };
+
   const handleAIDecompose = async (milestone: Milestone) => {
     const apiKey = localStorage.getItem('openai_api_key');
     if (!apiKey) {
@@ -80,10 +99,25 @@ function MilestonesContent() {
       });
       
       const data = await response.json();
-      console.log('AI分解結果:', data);
-      // TODO: タスクを保存
+      
+      // AIが生成したタスクを保存
+      if (data.tasks && Array.isArray(data.tasks)) {
+        for (const task of data.tasks) {
+          await createTask({
+            milestoneId: milestone.id,
+            title: task.title,
+            description: task.description || '',
+            status: 'todo',
+            priority: task.priority || 'medium',
+          });
+        }
+        // タスクリストを更新
+        await loadTasksForMilestone(milestone.id);
+        setExpandedMilestone(milestone.id);
+      }
     } catch (error) {
       console.error('AI分解エラー:', error);
+      alert('タスクの分解に失敗しました');
     }
   };
 
@@ -182,41 +216,58 @@ function MilestonesContent() {
       ) : (
         <div className="space-y-4">
           {milestones.map((milestone, index) => (
-            <Card key={milestone.id}>
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    {
-                      milestone.completed 
-                        ? <CheckCircle className="h-6 w-6 text-green-600" />
-                        : <Circle className="h-6 w-6" />
-                    }
-                    <div>
-                      <CardTitle>{milestone.title}</CardTitle>
-                      {milestone.description && (
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {milestone.description}
-                        </p>
-                      )}
+            <div key={milestone.id}>
+              <Card className="cursor-pointer" onClick={() => handleToggleMilestone(milestone.id)}>
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      {
+                        milestone.completed 
+                          ? <CheckCircle className="h-6 w-6 text-green-600" />
+                          : <Circle className="h-6 w-6" />
+                      }
+                      <div>
+                        <CardTitle>{milestone.title}</CardTitle>
+                        {milestone.description && (
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {milestone.description}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAIDecompose(milestone);
+                        }}
+                      >
+                        <Sparkles className="h-4 w-4 mr-1" />
+                        AI分解
+                      </Button>
+                      <div className="text-sm text-muted-foreground">
+                        <Calendar className="h-4 w-4 inline mr-1" />
+                        {new Date(milestone.targetDate).toLocaleDateString('ja-JP')}
+                      </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleAIDecompose(milestone)}
-                    >
-                      <Sparkles className="h-4 w-4 mr-1" />
-                      AI分解
-                    </Button>
-                    <div className="text-sm text-muted-foreground">
-                      <Calendar className="h-4 w-4 inline mr-1" />
-                      {new Date(milestone.targetDate).toLocaleDateString('ja-JP')}
-                    </div>
-                  </div>
+                </CardHeader>
+              </Card>
+              
+              {expandedMilestone === milestone.id && (
+                <div className="ml-8 mt-3">
+                  <TaskList
+                    milestoneId={milestone.id}
+                    tasks={tasks[milestone.id] || []}
+                    onCreateTask={createTask}
+                    onUpdateTaskStatus={updateTaskStatus}
+                    onRefresh={() => loadTasksForMilestone(milestone.id)}
+                  />
                 </div>
-              </CardHeader>
-            </Card>
+              )}
+            </div>
           ))}
         </div>
       )}

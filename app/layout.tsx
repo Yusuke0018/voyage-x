@@ -38,6 +38,7 @@ export default function RootLayout({
                 <a href="/goals" className="hover:text-primary">目標</a>
                 <a href="/timeline" className="hover:text-primary">タイムライン</a>
                 <a href="/review" className="hover:text-primary">レビュー</a>
+                <a href="/settings" className="hover:text-primary">設定</a>
               </div>
             </div>
           </div>
