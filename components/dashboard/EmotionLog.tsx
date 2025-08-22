@@ -1,28 +1,53 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { useDatabase } from '@/hooks/useDatabase';
 
 export function EmotionLog() {
+  const { isReady, saveEmotionLog, getEmotionLogs } = useDatabase();
   const [mood, setMood] = useState(3);
   const [energy, setEnergy] = useState(3);
   const [note, setNote] = useState('');
+  const [todayLog, setTodayLog] = useState(null);
+  const [saved, setSaved] = useState(false);
 
   const moodEmojis = ['😢', '😔', '😐', '🙂', '😄'];
   const energyEmojis = ['🔋', '🔋🔋', '🔋🔋🔋', '🔋🔋🔋🔋', '⚡'];
 
+  useEffect(() => {
+    if (isReady) {
+      loadTodayLog();
+    }
+  }, [isReady]);
+
+  const loadTodayLog = async () => {
+    const logs = await getEmotionLogs(1);
+    const today = new Date().toISOString().split('T')[0];
+    const todayLogData = logs.find(log => 
+      new Date(log.date).toISOString().split('T')[0] === today
+    );
+    
+    if (todayLogData) {
+      setMood(todayLogData.mood);
+      setEnergy(todayLogData.energy);
+      setNote(todayLogData.note || '');
+      setTodayLog(todayLogData);
+    }
+  };
+
   const saveLog = async () => {
-    const log = {
-      date: new Date().toISOString().split('T')[0],
+    await saveEmotionLog({
+      date: new Date(),
       mood,
       energy,
-      note,
-      createdAt: new Date().toISOString()
-    };
+      note
+    });
     
-    // TODO: Save to database
-    console.log('Saving emotion log:', log);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+    await loadTodayLog();
   };
 
   return (
@@ -72,9 +97,15 @@ export function EmotionLog() {
         />
       </div>
 
-      <Button onClick={saveLog} className="w-full">
-        記録する
+      <Button onClick={saveLog} className="w-full" disabled={!isReady}>
+        {todayLog ? '更新する' : '記録する'}
       </Button>
+      
+      {saved && (
+        <div className="text-center text-sm text-green-600">
+          保存しました
+        </div>
+      )}
     </div>
   );
 }
