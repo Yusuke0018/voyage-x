@@ -4,56 +4,65 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CheckCircle2, Circle, AlertCircle } from 'lucide-react';
-import type { Task } from '@/lib/types';
+import { useDatabase } from '@/hooks/useDatabase';
+import type { Task, Goal, Milestone } from '@/lib/types';
 
 export function TodayCompass() {
+  const { isReady, getGoals, getMilestonesByGoal, getTasksByMilestone, updateTaskStatus } = useDatabase();
   const [todayTasks, setTodayTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // TODO: Fetch today's tasks from database
-    setLoading(false);
-    
-    // Mock data for now
-    setTodayTasks([
-      {
-        id: '1',
-        milestoneId: 'm1',
-        title: 'プロジェクト設計書を作成',
-        priority: 'high',
-        status: 'in_progress',
-        createdAt: new Date(),
-        updatedAt: new Date()
-      },
-      {
-        id: '2',
-        milestoneId: 'm1',
-        title: 'APIエンドポイントの実装',
-        priority: 'medium',
-        status: 'todo',
-        createdAt: new Date(),
-        updatedAt: new Date()
-      },
-      {
-        id: '3',
-        milestoneId: 'm1',
-        title: 'テストケース作成',
-        priority: 'low',
-        status: 'todo',
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }
-    ]);
-  }, []);
+    if (isReady) {
+      loadTodayTasks();
+    }
+  }, [isReady]);
 
-  const toggleTaskStatus = (taskId: string) => {
-    setTodayTasks(tasks => 
-      tasks.map(task => 
-        task.id === taskId 
-          ? { ...task, status: task.status === 'done' ? 'todo' : 'done' }
-          : task
-      )
-    );
+  const loadTodayTasks = async () => {
+    setLoading(true);
+    try {
+      const goals = await getGoals();
+      const allTasks: Task[] = [];
+      
+      // すべての目標からタスクを収集
+      for (const goal of goals) {
+        const milestones = await getMilestonesByGoal(goal.id);
+        for (const milestone of milestones) {
+          if (!milestone.completed) {
+            const tasks = await getTasksByMilestone(milestone.id);
+            allTasks.push(...tasks);
+          }
+        }
+      }
+      
+      // 優先度の高い未完了タスクを3つ選択
+      const priorityOrder = { 'high': 0, 'medium': 1, 'low': 2 };
+      const statusOrder = { 'in_progress': 0, 'todo': 1, 'postponed': 2, 'done': 3 };
+      
+      const sortedTasks = allTasks
+        .filter(task => task.status !== 'done')
+        .sort((a, b) => {
+          const statusDiff = statusOrder[a.status] - statusOrder[b.status];
+          if (statusDiff !== 0) return statusDiff;
+          return priorityOrder[a.priority] - priorityOrder[b.priority];
+        })
+        .slice(0, 3);
+      
+      setTodayTasks(sortedTasks);
+    } catch (error) {
+      console.error('Failed to load tasks:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleTaskStatus = async (taskId: string) => {
+    const task = todayTasks.find(t => t.id === taskId);
+    if (!task) return;
+    
+    const newStatus = task.status === 'done' ? 'todo' : 'done';
+    await updateTaskStatus(taskId, newStatus);
+    await loadTodayTasks();
   };
 
   const getPriorityIcon = (priority: string) => {

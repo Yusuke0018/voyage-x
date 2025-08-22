@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
+import { MobileMenu } from "@/components/MobileMenu";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,19 +33,20 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ServiceWorkerRegister />
-        <nav className="border-b">
+        <nav className="border-b relative">
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <a href="/" className="text-xl font-bold">
                 🚢 Voyage
               </a>
-              <div className="flex gap-4">
+              <div className="hidden md:flex gap-4">
                 <a href="/" className="hover:text-primary">ダッシュボード</a>
                 <a href="/goals" className="hover:text-primary">目標</a>
                 <a href="/timeline" className="hover:text-primary">タイムライン</a>
                 <a href="/review" className="hover:text-primary">レビュー</a>
                 <a href="/settings" className="hover:text-primary">設定</a>
               </div>
+              <MobileMenu />
             </div>
           </div>
         </nav>
