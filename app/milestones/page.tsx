@@ -261,7 +261,10 @@ function MilestonesContent() {
                   <TaskList
                     milestoneId={milestone.id}
                     tasks={tasks[milestone.id] || []}
-                    onCreateTask={createTask}
+                    onCreateTask={async (task) => {
+                      await createTask(task);
+                      await loadTasksForMilestone(task.milestoneId);
+                    }}
                     onUpdateTaskStatus={updateTaskStatus}
                     onRefresh={() => loadTasksForMilestone(milestone.id)}
                   />

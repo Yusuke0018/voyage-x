@@ -207,7 +207,7 @@ export default function GoalsPage() {
                     </div>
                     {goal.vision && (
                       <div className="pt-2 text-sm text-muted-foreground italic">
-                        "{goal.vision}"
+                        &quot;{goal.vision}&quot;
                       </div>
                     )}
                   </div>

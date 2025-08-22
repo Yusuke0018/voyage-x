@@ -30,13 +30,13 @@ export function useDatabase() {
   const getGoals = useCallback(async (): Promise<Goal[]> => {
     const results = await executeQuery('SELECT * FROM goals ORDER BY created_at DESC');
     return results.map(row => ({
-      id: row.id,
-      title: row.title,
-      description: row.description,
-      targetDate: new Date(row.target_date),
-      vision: row.vision,
-      createdAt: new Date(row.created_at),
-      updatedAt: new Date(row.updated_at)
+      id: row.id as string,
+      title: row.title as string,
+      description: row.description as string,
+      targetDate: new Date(row.target_date as string),
+      vision: row.vision as string | undefined,
+      createdAt: new Date(row.created_at as string),
+      updatedAt: new Date(row.updated_at as string)
     }));
   }, []);
 
@@ -95,15 +95,15 @@ export function useDatabase() {
     );
     
     return results.map(row => ({
-      id: row.id,
-      goalId: row.goal_id,
-      title: row.title,
-      description: row.description,
-      targetDate: new Date(row.target_date),
+      id: row.id as string,
+      goalId: row.goal_id as string,
+      title: row.title as string,
+      description: row.description as string | undefined,
+      targetDate: new Date(row.target_date as string),
       completed: row.completed === 1,
-      order: row.order_num,
-      createdAt: new Date(row.created_at),
-      updatedAt: new Date(row.updated_at)
+      order: row.order_num as number,
+      createdAt: new Date(row.created_at as string),
+      updatedAt: new Date(row.updated_at as string)
     }));
   }, []);
 
@@ -139,17 +139,17 @@ export function useDatabase() {
     );
     
     return results.map(row => ({
-      id: row.id,
-      milestoneId: row.milestone_id,
-      title: row.title,
-      description: row.description,
-      status: row.status,
-      priority: row.priority,
-      dueDate: row.due_date ? new Date(row.due_date) : undefined,
-      completedAt: row.completed_at ? new Date(row.completed_at) : undefined,
-      dependencies: row.dependencies ? JSON.parse(row.dependencies) : undefined,
-      createdAt: new Date(row.created_at),
-      updatedAt: new Date(row.updated_at)
+      id: row.id as string,
+      milestoneId: row.milestone_id as string,
+      title: row.title as string,
+      description: row.description as string | undefined,
+      status: row.status as Task['status'],
+      priority: row.priority as Task['priority'],
+      dueDate: row.due_date ? new Date(row.due_date as string) : undefined,
+      completedAt: row.completed_at ? new Date(row.completed_at as string) : undefined,
+      dependencies: row.dependencies ? JSON.parse(row.dependencies as string) : undefined,
+      createdAt: new Date(row.created_at as string),
+      updatedAt: new Date(row.updated_at as string)
     }));
   }, []);
 
@@ -183,12 +183,12 @@ export function useDatabase() {
     );
     
     return results.map(row => ({
-      id: row.id,
-      date: new Date(row.date),
-      mood: row.mood,
-      energy: row.energy,
-      note: row.note,
-      createdAt: new Date(row.created_at)
+      id: row.id as string,
+      date: new Date(row.date as string),
+      mood: row.mood as 1 | 2 | 3 | 4 | 5,
+      energy: row.energy as 1 | 2 | 3 | 4 | 5,
+      note: row.note as string | undefined,
+      createdAt: new Date(row.created_at as string)
     }));
   }, []);
 

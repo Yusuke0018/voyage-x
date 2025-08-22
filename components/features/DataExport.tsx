@@ -19,7 +19,7 @@ export function DataExport() {
       const exportData = {
         version: '1.0',
         exportDate: new Date().toISOString(),
-        goals: [],
+        goals: [] as any[],
         emotionLogs: await getEmotionLogs(365)
       };
 
@@ -27,7 +27,7 @@ export function DataExport() {
         const milestones = await getMilestonesByGoal(goal.id);
         const goalData = {
           ...goal,
-          milestones: []
+          milestones: [] as any[]
         };
 
         for (const milestone of milestones) {

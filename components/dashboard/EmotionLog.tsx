@@ -4,13 +4,14 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useDatabase } from '@/hooks/useDatabase';
+import type { EmotionLog } from '@/lib/types';
 
 export function EmotionLog() {
   const { isReady, saveEmotionLog, getEmotionLogs } = useDatabase();
-  const [mood, setMood] = useState(3);
-  const [energy, setEnergy] = useState(3);
+  const [mood, setMood] = useState<1 | 2 | 3 | 4 | 5>(3);
+  const [energy, setEnergy] = useState<1 | 2 | 3 | 4 | 5>(3);
   const [note, setNote] = useState('');
-  const [todayLog, setTodayLog] = useState(null);
+  const [todayLog, setTodayLog] = useState<EmotionLog | null>(null);
   const [saved, setSaved] = useState(false);
 
   const moodEmojis = ['😢', '😔', '😐', '🙂', '😄'];
@@ -60,7 +61,7 @@ export function EmotionLog() {
               key={index}
               variant={mood === index + 1 ? 'default' : 'outline'}
               size="sm"
-              onClick={() => setMood(index + 1)}
+              onClick={() => setMood((index + 1) as 1 | 2 | 3 | 4 | 5)}
               className="text-xl"
             >
               {emoji}
@@ -77,7 +78,7 @@ export function EmotionLog() {
               key={index}
               variant={energy === index + 1 ? 'default' : 'outline'}
               size="sm"
-              onClick={() => setEnergy(index + 1)}
+              onClick={() => setEnergy((index + 1) as 1 | 2 | 3 | 4 | 5)}
               className="text-sm"
             >
               {emoji}

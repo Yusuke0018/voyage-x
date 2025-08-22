@@ -51,8 +51,8 @@ export interface EmotionLog {
 export interface AIProposal {
   id: string;
   type: 'decompose' | 'reroute';
-  input: any;
-  output: any;
+  input: Record<string, unknown>;
+  output: Record<string, unknown>;
   applied: boolean;
   createdAt: Date;
 }
