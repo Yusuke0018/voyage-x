@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Settings, Key, Save, Eye, EyeOff } from 'lucide-react';
 
+import { DataExport } from '@/components/features/DataExport';
+
 export default function SettingsPage() {
   const [apiKey, setApiKey] = useState('');
   const [showApiKey, setShowApiKey] = useState(false);
@@ -123,6 +125,19 @@ export default function SettingsPage() {
                 ))}
               </select>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* データ管理 */}
+        <Card>
+          <CardHeader>
+            <CardTitle>🗂️ データ管理</CardTitle>
+            <CardDescription>
+              データのバックアップとリストア
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <DataExport />
           </CardContent>
         </Card>
 
