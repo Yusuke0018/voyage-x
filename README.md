@@ -1,36 +1,126 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Voyage - 航海計画アプリ
 
-## Getting Started
+## 概要
 
-First, run the development server:
+Voyageは、長期目標を「宝島」、中間目標を「島々」に見立てて、人生の航海を計画・管理するWebアプリケーションです。AIによるタスク分解支援とリルート提案により、柔軟で現実的な計画管理を実現します。
+
+## 特徴
+
+### 🏝️ ビジュアルな目標管理
+- **宝島（長期目標）**: 最終的に到達したい大きな目標
+- **島々（中間目標）**: 宝島にたどり着くまでの経由地点
+- **タスク**: 各島で達成すべき具体的な行動
+
+### 🤖 AI支援機能
+- **タスク自動分解**: 中間目標を具体的なタスクリストに自動分解
+- **リルート提案**: 計画の遅れや変更に応じて新しいルートを提案
+- **優先度判定**: その日に取り組むべき重要タスクを自動選出
+
+### 📊 進捗管理
+- **今日の羅針盤**: 本日の重要タスク3つを表示
+- **感情ログ**: 日々の気分とエネルギーレベルを記録
+- **週次レビュー**: 振り返りと次週の計画調整
+
+### 💾 データ管理
+- **ローカルファースト**: SQLite + localforageでブラウザ内にデータ保存
+- **プライバシー重視**: データは端末内に保存、外部送信なし
+- **PWA対応**: オフラインでも使用可能
+
+## 技術スタック
+
+- **Frontend**: Next.js 15, TypeScript, Tailwind CSS
+- **UI Components**: shadcn/ui, Radix UI
+- **Database**: SQL.js (SQLite in browser), localforage
+- **AI Integration**: OpenAI API (GPT-4)
+- **Icons**: Lucide React
+
+## セットアップ
+
+### 必要要件
+- Node.js 18以上
+- npm または yarn
+
+### インストール
 
 ```bash
+# リポジトリのクローン
+git clone https://github.com/Yusuke0018/voyage.git
+cd voyage
+
+# 依存関係のインストール
+npm install
+
+# 開発サーバーの起動
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 環境設定
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+OpenAI APIキーは初回起動時にブラウザで設定画面から入力してください。
+キーはローカルストレージに保存され、外部には送信されません。
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 使い方
 
-## Learn More
+1. **目標の設定**: 長期目標（宝島）を作成
+2. **マイルストーン設定**: 中間目標（島々）を配置
+3. **タスク分解**: AIに中間目標を分解してもらう
+4. **日々の実行**: 今日の羅針盤でタスクを確認・実行
+5. **振り返り**: 週次レビューで進捗確認と計画調整
 
-To learn more about Next.js, take a look at the following resources:
+## プロジェクト構造
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+voyage/
+├── app/                    # Next.js App Router
+│   ├── page.tsx           # ダッシュボード
+│   ├── goals/             # 長期目標管理
+│   ├── milestones/        # 中間目標管理
+│   └── api/ai/            # AI API エンドポイント
+├── components/            # React コンポーネント
+│   ├── dashboard/         # ダッシュボード用
+│   ├── timeline/          # タイムライン表示
+│   └── ui/                # 基本UIコンポーネント
+├── lib/                   # ユーティリティ
+│   ├── db/                # データベース関連
+│   ├── ai/                # AI統合
+│   └── types.ts           # TypeScript型定義
+└── public/                # 静的ファイル
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 開発ロードマップ
 
-## Deploy on Vercel
+### Phase 1: 基盤構築 ✅
+- [x] プロジェクトセットアップ
+- [x] 基本UI実装
+- [x] データモデル定義
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Phase 2: コア機能（実装中）
+- [ ] CRUD操作の実装
+- [ ] ローカルDB統合
+- [ ] AI タスク分解機能
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Phase 3: 高度な機能
+- [ ] タイムラインビュー
+- [ ] リルート提案
+- [ ] 週次レビュー機能
+
+### Phase 4: 最適化
+- [ ] PWA化
+- [ ] パフォーマンス最適化
+- [ ] モバイル最適化
+
+## ライセンス
+
+MIT License
+
+## 作者
+
+Yusuke0018
+
+## 貢献
+
+Issue報告やPull Requestを歓迎します。
+
+## サポート
+
+質問や提案がある場合は、[Issues](https://github.com/Yusuke0018/voyage/issues)までお願いします。
