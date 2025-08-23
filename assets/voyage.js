@@ -1115,11 +1115,21 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// キャッシュクリア（開発時のみ）
-if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
-    if ('caches' in window) {
-        caches.keys().then(names => {
-            names.forEach(name => caches.delete(name));
+// キャッシュ強制クリア（常時）
+if ('caches' in window) {
+    caches.keys().then(names => {
+        names.forEach(name => {
+            caches.delete(name);
+            console.log(`Cache cleared: ${name}`);
         });
-    }
+    });
+}
+
+// Service Workerも更新
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(registrations => {
+        registrations.forEach(registration => {
+            registration.update();
+        });
+    });
 }
