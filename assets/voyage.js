@@ -123,7 +123,8 @@ class StateManager {
             startDate: DateUtil.normalizeToISO(startDate, type === 'month' ? 'month' : 'day'),
             endDate: type === 'range' ? DateUtil.normalizeToISO(endDate, 'day') : undefined,
             title,
-            description
+            description,
+            y: 120
         };
         
         vision.milestones.push(milestone);
@@ -526,8 +527,8 @@ class UI {
         duePin.textContent = `期日: ${DateUtil.formatForDisplay(vision.dueDate, 'day')}`;
         timeline.appendChild(duePin);
         
-        // マイルストーンの描画
-        vision.milestones.forEach(milestone => {
+        // マイルストーンの描画（位置は保存されたyを尊重）
+        vision.milestones.forEach((milestone) => {
             const element = this.createMilestoneElement(milestone, startDate, monthWidth);
             track.appendChild(element);
         });
@@ -540,7 +541,7 @@ class UI {
         const element = document.createElement('div');
         element.className = 'milestone';
         element.dataset.id = milestone.id;
-
+        
         const startDate = new Date(milestone.startDate);
         const monthsFromBase = DateUtil.getMonthsBetween(baseDate, startDate);
         const leftPosition = monthsFromBase * monthWidth;
@@ -551,36 +552,9 @@ class UI {
         // カラーパレットを安定適用
         const colorIdx = UI.colorIndexFromString(milestone.id || milestone.title || '');
         element.classList.add(`ms-color-${colorIdx}`);
-        
-        // 重なり回避のための高さ調整
-        const existingMilestones = document.querySelectorAll('.milestone');
-        let topPosition = 100;
-        let foundPosition = false;
-        
-        while (!foundPosition && topPosition < 400) {
-            foundPosition = true;
-            for (const existing of existingMilestones) {
-                const existingLeft = parseInt(existing.style.left);
-                const existingTop = parseInt(existing.style.top);
-                const existingWidth = existing.querySelector('.milestone-bar') ? 
-                    parseInt(existing.querySelector('.milestone-bar').style.width) : 50;
-                
-                // 重なり判定
-                if (Math.abs(existingTop - topPosition) < 40) {
-                    const elementWidth = milestone.type === 'range' && milestone.endDate ? 
-                        DateUtil.getMonthsBetween(startDate, new Date(milestone.endDate)) * monthWidth : 50;
-                    
-                    if ((leftPosition < existingLeft + existingWidth) && 
-                        (leftPosition + elementWidth > existingLeft)) {
-                        foundPosition = false;
-                        topPosition += 50;
-                        break;
-                    }
-                }
-            }
-        }
-        
-        element.style.top = `${topPosition}px`;
+        // Y位置（保存値が無ければデフォルト）
+        const defaultTop = 120;
+        element.style.top = `${typeof milestone.y === 'number' ? milestone.y : defaultTop}px`;
         
         if (milestone.type === 'range' && milestone.endDate) {
             const endDate = new Date(milestone.endDate);
@@ -692,7 +666,9 @@ class UI {
             let isResizing = false;
             let resizeSide = null;
             let startX = 0;
+            let startY = 0;
             let startLeft = 0;
+            let startTop = 0;
             let startWidth = 0;
             let moved = false;
             let pressed = false;
@@ -720,7 +696,9 @@ class UI {
                 moved = false;
                 pressed = true;
                 startX = e.clientX;
+                startY = e.clientY;
                 startLeft = parseInt(milestone.style.left);
+                startTop = parseInt(milestone.style.top);
                 milestone.style.cursor = 'grabbing';
                 e.preventDefault();
             });
@@ -732,12 +710,14 @@ class UI {
                 moved = false;
                 pressed = true;
                 startX = e.touches[0].clientX;
+                startY = e.touches[0].clientY;
                 startLeft = parseInt(milestone.style.left);
+                startTop = parseInt(milestone.style.top);
                 e.preventDefault();
             });
             
             // マウス移動
-            const handleMove = (clientX) => {
+            const handleMove = (clientX, clientY) => {
                 if (isResizing) {
                     const deltaX = clientX - startX;
                     const bar = milestone.querySelector('.milestone-bar');
@@ -753,6 +733,7 @@ class UI {
                     }
                 } else {
                     const deltaX = clientX - startX;
+                    const deltaY = clientY - startY;
                     if (!isDragging && Math.abs(deltaX) > 5) {
                         isDragging = true;
                     }
@@ -760,6 +741,10 @@ class UI {
                         moved = true;
                         const newLeft = Math.max(0, startLeft + deltaX);
                         milestone.style.left = `${newLeft}px`;
+                        const timeline = document.getElementById('timeline');
+                        const maxY = Math.max(0, (timeline ? timeline.clientHeight - 60 : 540));
+                        const newTop = Math.min(Math.max(60, startTop + deltaY), maxY);
+                        milestone.style.top = `${newTop}px`;
                     }
                 }
             };
@@ -769,7 +754,7 @@ class UI {
                 if (isDragging || isResizing) {
                     if (rafId) cancelAnimationFrame(rafId);
                     rafId = requestAnimationFrame(() => {
-                        handleMove(e.clientX);
+                        handleMove(e.clientX, e.clientY);
                     });
                 }
             });
@@ -778,7 +763,7 @@ class UI {
                 if (isDragging || isResizing) {
                     if (rafId) cancelAnimationFrame(rafId);
                     rafId = requestAnimationFrame(() => {
-                        handleMove(e.touches[0].clientX);
+                        handleMove(e.touches[0].clientX, e.touches[0].clientY);
                     });
                     e.preventDefault();
                 }
@@ -819,6 +804,8 @@ class UI {
                     } else if (ms.type === 'month') {
                         updates.startDate = `${newStartDate.getFullYear()}-${String(newStartDate.getMonth() + 1).padStart(2, '0')}`;
                     }
+                    // Y位置を保存
+                    updates.y = parseInt(milestone.style.top) || 120;
                     
                     stateManager.updateMilestone(visionId, milestone.dataset.id, updates);
                 } else {
