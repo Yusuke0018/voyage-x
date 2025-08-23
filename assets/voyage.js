@@ -695,6 +695,7 @@ class UI {
             let startLeft = 0;
             let startWidth = 0;
             let moved = false;
+            let pressed = false;
             const monthWidth = Math.max(40, Math.min(160, stateManager.state.zoom || 100));
             
             // リサイズハンドル
@@ -717,6 +718,7 @@ class UI {
                 if (e.target.closest('.milestone-resize')) return;
                 isDragging = false; // しきい値超過までドラッグ扱いにしない
                 moved = false;
+                pressed = true;
                 startX = e.clientX;
                 startLeft = parseInt(milestone.style.left);
                 milestone.style.cursor = 'grabbing';
@@ -728,6 +730,7 @@ class UI {
                 if (e.target.closest('.milestone-resize')) return;
                 isDragging = false;
                 moved = false;
+                pressed = true;
                 startX = e.touches[0].clientX;
                 startLeft = parseInt(milestone.style.left);
                 e.preventDefault();
@@ -787,6 +790,7 @@ class UI {
                     cancelAnimationFrame(rafId);
                     rafId = null;
                 }
+                if (!pressed) return; // このマイルストーンでの操作でなければ無視
                 if (isResizing || moved) {
                     const visionId = stateManager.state.currentVisionId;
                     const vision = stateManager.state.visions.find(v => v.id === visionId);
@@ -828,6 +832,7 @@ class UI {
                 isDragging = false;
                 isResizing = false;
                 moved = false;
+                pressed = false;
                 resizeSide = null;
                 milestone.style.cursor = 'move';
             };
@@ -879,6 +884,15 @@ class UI {
             </div>
         `;
         document.body.appendChild(modal);
+        const content = modal.querySelector('.modal-content');
+        const closeModal = () => { modal.remove(); };
+        // 背景クリックで閉じる
+        modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+        // コンテンツ内クリックは伝播させない
+        if (content) content.addEventListener('click', (e) => e.stopPropagation());
+        // ESCで閉じる
+        const escHandler = (e) => { if (e.key === 'Escape') { closeModal(); document.removeEventListener('keydown', escHandler); } };
+        document.addEventListener('keydown', escHandler);
         
         // タイプ変更時の表示制御と入力タイプ変更
         document.getElementById('msType').addEventListener('change', (e) => {
@@ -917,14 +931,12 @@ class UI {
                 stateManager.addMilestone(visionId, type, startDate, endDate, title, description);
             }
             
-            modal.remove();
+            closeModal();
             UI.renderApp();
         });
         
         // キャンセル
-        document.getElementById('cancelMs').addEventListener('click', () => {
-            modal.remove();
-        });
+        document.getElementById('cancelMs').addEventListener('click', () => { closeModal(); });
         
         // 削除（取り消し機能付き）
         if (isEdit) {
