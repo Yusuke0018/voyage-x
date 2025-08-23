@@ -382,6 +382,14 @@ class UI {
     
     static renderHome(container) {
         container.innerHTML = `
+            <header class="app-header">
+                <div class="app-header-inner">
+                    <div class="brand"><span class="brand-mark"></span>Voyage</div>
+                    <div class="header-actions">
+                        <button id="addVisionHeader">新しいビジョン</button>
+                    </div>
+                </div>
+            </header>
             <div class="container">
                 <div class="hero">
                     <h1>Voyage</h1>
@@ -440,16 +448,24 @@ class UI {
         }
         
         container.innerHTML = `
+            <header class="app-header">
+                <div class="app-header-inner">
+                    <div class="brand" style="gap:14px;">
+                        <button id="backToHome" style="background:#F3F4F6;color:#111827;border:1px solid rgba(0,0,0,0.06);">← ホーム</button>
+                        <span class="brand-mark"></span>${vision.title}
+                    </div>
+                    <div class="header-actions">
+                        <button id="addMilestone">マイルストーンを追加</button>
+                    </div>
+                </div>
+            </header>
             <div class="timeline-container">
-                <div style="padding: 20px;">
-                    <button id="backToHome">← ホームに戻る</button>
-                    <h1>${vision.title}</h1>
+                <div style="padding: 20px 20px 0;">
                     <p>期日: ${DateUtil.formatForDisplay(vision.dueDate, 'day')}</p>
                 </div>
                 <div class="timeline" id="timeline">
                     <div class="timeline-track" id="timelineTrack"></div>
                 </div>
-                <button id="addMilestone" style="margin: 20px;">マイルストーンを追加</button>
             </div>
         `;
         
@@ -577,6 +593,8 @@ class UI {
         document.getElementById('addVision').addEventListener('click', () => {
             this.showVisionModal();
         });
+        const addHead = document.getElementById('addVisionHeader');
+        if (addHead) addHead.addEventListener('click', () => this.showVisionModal());
         
         document.getElementById('exportData').addEventListener('click', () => {
             DataPorter.exportData(stateManager.state);

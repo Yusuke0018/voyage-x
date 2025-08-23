@@ -4,8 +4,8 @@
   "description": "最小×可変×スタイリッシュな個人用年表アプリ",
   "start_url": "/voyage-x/",
   "display": "standalone",
-  "background_color": "#0B0F14",
-  "theme_color": "#7C3AED",
+  "background_color": "#FFFFFF",
+  "theme_color": "#FFFFFF",
   "orientation": "any",
   "icons": [
     {

@@ -1,5 +1,5 @@
 // Service Worker for Voyage PWA
-const CACHE_NAME = 'voyage-v1.0.1'; // バージョンを更新してキャッシュクリア
+const CACHE_NAME = 'voyage-v1.1.0'; // バージョンを更新してキャッシュクリア
 const urlsToCache = [
   '/voyage-x/',
   '/voyage-x/index.html',
@@ -10,6 +10,7 @@ const urlsToCache = [
 
 // インストール時にキャッシュ
 self.addEventListener('install', event => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => cache.addAll(urlsToCache))
@@ -18,12 +19,17 @@ self.addEventListener('install', event => {
 
 // リクエスト時にキャッシュから返す
 self.addEventListener('fetch', event => {
+  const req = event.request;
+  // HTML/CSS/JSはネットワーク優先で常に最新を取得
+  if (req.destination === 'document' || req.destination === 'script' || req.destination === 'style') {
+    event.respondWith(
+      fetch(req).catch(() => caches.match(req))
+    );
+    return;
+  }
+  // それ以外はキャッシュ優先
   event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        // キャッシュがあればそれを返す、なければネットワークから取得
-        return response || fetch(event.request);
-      })
+    caches.match(req).then(res => res || fetch(req))
   );
 });
 
@@ -38,6 +44,6 @@ self.addEventListener('activate', event => {
           }
         })
       );
-    })
+    }).then(() => self.clients.claim())
   );
 });
