@@ -748,7 +748,7 @@ class UI {
                 } else {
                     const deltaX = clientX - startX;
                     const deltaY = clientY - startY;
-                    if (!isDragging && Math.abs(deltaX) > 5) {
+                    if (!isDragging && (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5)) {
                         isDragging = true;
                     }
                     if (isDragging) {
