@@ -337,9 +337,13 @@ class DataPorter {
 
 // ===== UI Manager =====
 class UI {
+    static deletedItem = null;
+    static undoTimer = null;
+    
     static init() {
         document.body.setAttribute('data-theme', stateManager.state.theme || 'dark');
         this.renderApp();
+        this.addThemeToggle();
     }
     
     static renderApp() {
@@ -350,6 +354,26 @@ class UI {
         } else {
             this.renderTimeline(app);
         }
+    }
+    
+    static addThemeToggle() {
+        if (document.getElementById('themeToggle')) return;
+        
+        const toggle = document.createElement('div');
+        toggle.id = 'themeToggle';
+        toggle.className = 'theme-toggle';
+        toggle.innerHTML = stateManager.state.theme === 'dark' ? '☀️' : '🌙';
+        toggle.title = 'テーマを切り替え';
+        
+        toggle.addEventListener('click', () => {
+            const newTheme = stateManager.state.theme === 'dark' ? 'light' : 'dark';
+            stateManager.state.theme = newTheme;
+            document.body.setAttribute('data-theme', newTheme);
+            toggle.innerHTML = newTheme === 'dark' ? '☀️' : '🌙';
+            stateManager.save();
+        });
+        
+        document.body.appendChild(toggle);
     }
     
     static renderHome(container) {
@@ -414,22 +438,32 @@ class UI {
     
     static renderTimelineContent(vision) {
         const track = document.getElementById('timelineTrack');
+        const timeline = document.getElementById('timeline');
         const now = new Date();
         const startDate = new Date(now.getFullYear(), now.getMonth() - 6, 1);
         const endDate = new Date(vision.dueDate);
         endDate.setMonth(endDate.getMonth() + 6);
         
-        // 月ラベルの描画
+        // 月ラベルと四半期ラインの描画
         let currentDate = new Date(startDate);
         let position = 0;
         const monthWidth = 100; // px per month
         
         while (currentDate <= endDate) {
+            // 月ラベル
             const label = document.createElement('div');
             label.className = 'month-label';
             label.textContent = `${currentDate.getFullYear()}年${currentDate.getMonth() + 1}月`;
             label.style.left = `${position}px`;
             track.appendChild(label);
+            
+            // 四半期ライン（1,4,7,10月）
+            if ([0, 3, 6, 9].includes(currentDate.getMonth())) {
+                const quarterLine = document.createElement('div');
+                quarterLine.className = 'quarter-line';
+                quarterLine.style.left = `${position}px`;
+                track.appendChild(quarterLine);
+            }
             
             currentDate.setMonth(currentDate.getMonth() + 1);
             position += monthWidth;
@@ -441,6 +475,12 @@ class UI {
         currentLine.className = 'current-line';
         currentLine.style.left = `${monthsFromStart * monthWidth}px`;
         track.appendChild(currentLine);
+        
+        // 期日ピン
+        const duePin = document.createElement('div');
+        duePin.className = 'due-date-pin';
+        duePin.textContent = `期日: ${DateUtil.formatForDisplay(vision.dueDate, 'day')}`;
+        timeline.appendChild(duePin);
         
         // マイルストーンの描画
         vision.milestones.forEach(milestone => {
@@ -557,8 +597,19 @@ class UI {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 if (confirm('このビジョンを削除しますか？')) {
+                    const vision = stateManager.state.visions.find(v => v.id === btn.dataset.id);
+                    
+                    // 削除データを保存
+                    this.deletedItem = {
+                        type: 'vision',
+                        data: { ...vision, milestones: [...vision.milestones] }
+                    };
+                    
                     stateManager.deleteVision(btn.dataset.id);
                     UI.renderApp();
+                    
+                    // 取り消しトースト表示
+                    this.showUndoToast();
                 }
             });
         });
@@ -712,14 +763,27 @@ class UI {
             modal.remove();
         });
         
-        // 削除
+        // 削除（取り消し機能付き）
         if (isEdit) {
             document.getElementById('deleteMs').addEventListener('click', () => {
                 if (confirm('このマイルストーンを削除しますか？')) {
                     const visionId = stateManager.state.currentVisionId;
+                    const vision = stateManager.state.visions.find(v => v.id === visionId);
+                    const msData = vision.milestones.find(m => m.id === milestone.id);
+                    
+                    // 削除データを保存
+                    this.deletedItem = {
+                        type: 'milestone',
+                        visionId: visionId,
+                        data: { ...msData }
+                    };
+                    
                     stateManager.deleteMilestone(visionId, milestone.id);
                     modal.remove();
                     UI.renderApp();
+                    
+                    // 取り消しトースト表示
+                    this.showUndoToast();
                 }
             });
         }
@@ -736,6 +800,55 @@ class UI {
                 });
             }, 1000);
         });
+    }
+    
+    static showUndoToast() {
+        // 既存のトーストを削除
+        const existing = document.querySelector('.undo-toast');
+        if (existing) existing.remove();
+        
+        // タイマーをクリア
+        if (this.undoTimer) {
+            clearTimeout(this.undoTimer);
+        }
+        
+        // トースト作成
+        const toast = document.createElement('div');
+        toast.className = 'undo-toast';
+        toast.innerHTML = `
+            <span>削除しました</span>
+            <button id="undoBtn">取り消し</button>
+        `;
+        document.body.appendChild(toast);
+        
+        // 取り消しボタン
+        document.getElementById('undoBtn').addEventListener('click', () => {
+            if (this.deletedItem) {
+                if (this.deletedItem.type === 'milestone') {
+                    const vision = stateManager.state.visions.find(
+                        v => v.id === this.deletedItem.visionId
+                    );
+                    if (vision) {
+                        vision.milestones.push(this.deletedItem.data);
+                        stateManager.notify();
+                        UI.renderApp();
+                    }
+                } else if (this.deletedItem.type === 'vision') {
+                    stateManager.state.visions.push(this.deletedItem.data);
+                    stateManager.notify();
+                    UI.renderApp();
+                }
+                this.deletedItem = null;
+            }
+            toast.remove();
+            clearTimeout(this.undoTimer);
+        });
+        
+        // 2秒後に自動削除
+        this.undoTimer = setTimeout(() => {
+            toast.remove();
+            this.deletedItem = null;
+        }, 2000);
     }
     
     static showError(message) {
