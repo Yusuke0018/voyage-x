@@ -666,6 +666,19 @@ class UI {
                 label.style.maxWidth = `${allowedWidth}px`;
             }
         });
+
+        // 残日数バッジのはみ出し補正
+        document.querySelectorAll('.milestone .eta-badge').forEach(badge => {
+            badge.style.marginLeft = '0px';
+            const rect = badge.getBoundingClientRect();
+            const leftOverflow = Math.floor((trackRect.left + 8) - rect.left);
+            const rightOverflow = Math.floor(rect.right - (trackRect.right - 8));
+            if (leftOverflow > 0) {
+                badge.style.marginLeft = `${leftOverflow}px`;
+            } else if (rightOverflow > 0) {
+                badge.style.marginLeft = `${-rightOverflow}px`;
+            }
+        });
     }
 
     static decorateMilestoneETA(element, milestone, baseDate, monthWidth, currentX, track) {
