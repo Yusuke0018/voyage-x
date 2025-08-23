@@ -422,9 +422,14 @@ class UI {
         container.innerHTML = `
             <header class="app-header">
                 <div class="app-header-inner">
-                    <div class="brand"><span class="brand-mark"></span>Voyage</div>
+                    <div class="brand" id="brandButton"><span class="brand-mark"></span>Voyage</div>
                     <div class="header-actions">
                         <button id="addVisionHeader">新しいビジョン</button>
+                    </div>
+                    <div class="brand-menu" id="brandMenu" aria-hidden="true">
+                        <button id="menuExport">📥 データをエクスポート</button>
+                        <button id="menuImport">📤 データをインポート</button>
+                        <input type="file" id="importFileBrand" accept=".json" hidden>
                     </div>
                 </div>
             </header>
@@ -435,11 +440,6 @@ class UI {
                     <button class="hero-button" id="addVision">✨ 新しいビジョンを作成</button>
                 </div>
                 <div class="visions-grid" id="visionList"></div>
-                <div style="text-align: center; margin-top: 40px;">
-                    <button id="exportData" style="margin-right: 12px;">📥 データをエクスポート</button>
-                    <button id="importData">📤 データをインポート</button>
-                    <input type="file" id="importFile" accept=".json" style="display: none;">
-                </div>
             </div>
         `;
         
@@ -705,43 +705,43 @@ class UI {
         const addHead = document.getElementById('addVisionHeader');
         if (addHead) addHead.addEventListener('click', () => this.showVisionModal());
         
-        document.getElementById('exportData').addEventListener('click', () => {
-            DataPorter.exportData(stateManager.state);
-        });
-        
-        document.getElementById('importData').addEventListener('click', () => {
-            document.getElementById('importFile').click();
-        });
-        
-        document.getElementById('importFile').addEventListener('change', async (e) => {
+        // 左上ブランドメニュー（インポート/エクスポート）
+        const brandBtn = document.getElementById('brandButton');
+        const brandMenu = document.getElementById('brandMenu');
+        const toggleMenu = (open) => {
+            const willOpen = typeof open === 'boolean' ? open : !brandMenu.classList.contains('open');
+            brandMenu.classList.toggle('open', willOpen);
+            brandMenu.setAttribute('aria-hidden', String(!willOpen));
+        };
+        if (brandBtn && brandMenu) {
+            brandBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleMenu(); });
+            brandMenu.addEventListener('click', (e) => e.stopPropagation());
+            document.addEventListener('click', () => toggleMenu(false));
+        }
+        const menuExport = document.getElementById('menuExport');
+        const menuImport = document.getElementById('menuImport');
+        const importFileBrand = document.getElementById('importFileBrand');
+        if (menuExport) menuExport.addEventListener('click', () => { DataPorter.exportData(stateManager.state); toggleMenu(false); });
+        if (menuImport) menuImport.addEventListener('click', () => importFileBrand && importFileBrand.click());
+        if (importFileBrand) importFileBrand.addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (!file) return;
-            
             try {
-                const mode = confirm('既存データを置き換えますか？\n' +
-                    'OK: 置き換え / キャンセル: マージ') ? 'replace' : 'merge';
-                
+                const mode = confirm('既存データを置き換えますか？\nOK: 置き換え / キャンセル: マージ') ? 'replace' : 'merge';
                 const imported = await DataPorter.importData(file, mode);
-                
                 if (mode === 'replace') {
                     stateManager.state = imported;
                 } else {
-                    const strategy = prompt('ID衝突時の処理:\n' +
-                        '1: 上書き (overwrite)\n' +
-                        '2: スキップ (skip)\n' +
-                        '3: 複製 (duplicate)', 'skip');
-                    stateManager.state = DataPorter.mergeData(
-                        stateManager.state, imported, strategy
-                    );
+                    const strategy = prompt('ID衝突時の処理:\n1: 上書き (overwrite)\n2: スキップ (skip)\n3: 複製 (duplicate)', 'skip');
+                    stateManager.state = DataPorter.mergeData(stateManager.state, imported, strategy);
                 }
-                
                 stateManager.notify();
                 UI.renderApp();
             } catch (error) {
                 alert(`インポートエラー: ${error}`);
             }
-            
             e.target.value = '';
+            toggleMenu(false);
         });
         
         document.querySelectorAll('.vision-card').forEach(card => {
