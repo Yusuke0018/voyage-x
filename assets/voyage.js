@@ -682,6 +682,7 @@ class UI {
                 });
             });
             
+            // マウスイベント
             milestone.addEventListener('mousedown', (e) => {
                 if (e.target.closest('.milestone-resize')) return;
                 isDragging = true;
@@ -691,9 +692,19 @@ class UI {
                 e.preventDefault();
             });
             
-            document.addEventListener('mousemove', (e) => {
+            // タッチイベント
+            milestone.addEventListener('touchstart', (e) => {
+                if (e.target.closest('.milestone-resize')) return;
+                isDragging = true;
+                startX = e.touches[0].clientX;
+                startLeft = parseInt(milestone.style.left);
+                e.preventDefault();
+            });
+            
+            // マウス移動
+            const handleMove = (clientX) => {
                 if (isResizing) {
-                    const deltaX = e.clientX - startX;
+                    const deltaX = clientX - startX;
                     const bar = milestone.querySelector('.milestone-bar');
                     
                     if (resizeSide === 'left') {
@@ -706,13 +717,25 @@ class UI {
                         bar.style.width = `${newWidth}px`;
                     }
                 } else if (isDragging) {
-                    const deltaX = e.clientX - startX;
+                    const deltaX = clientX - startX;
                     const newLeft = Math.max(0, startLeft + deltaX);
                     milestone.style.left = `${newLeft}px`;
                 }
+            };
+            
+            document.addEventListener('mousemove', (e) => {
+                handleMove(e.clientX);
             });
             
-            document.addEventListener('mouseup', (e) => {
+            document.addEventListener('touchmove', (e) => {
+                if (isDragging || isResizing) {
+                    handleMove(e.touches[0].clientX);
+                    e.preventDefault();
+                }
+            });
+            
+            // 終了処理
+            const handleEnd = () => {
                 if (isResizing || isDragging) {
                     const visionId = stateManager.state.currentVisionId;
                     const vision = stateManager.state.visions.find(v => v.id === visionId);
@@ -749,7 +772,10 @@ class UI {
                     resizeSide = null;
                     milestone.style.cursor = 'move';
                 }
-            });
+            };
+            
+            document.addEventListener('mouseup', handleEnd);
+            document.addEventListener('touchend', handleEnd);
             
             // ダブルクリックで詳細モーダル
             milestone.addEventListener('dblclick', () => {
