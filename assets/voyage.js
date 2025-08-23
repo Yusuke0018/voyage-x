@@ -624,18 +624,7 @@ class UI {
         badge.className = `eta-badge ${days >= 0 ? 'future' : 'past'}`;
         badge.textContent = days >= 0 ? `あと${days}日` : `${Math.abs(days)}日超過`;
         element.appendChild(badge);
-        // 接続線
-        const targetMonths = DateUtil.getMonthsBetween(baseDate, new Date(targetISO));
-        const targetX = targetMonths * monthWidth;
-        const left = Math.min(currentX, targetX);
-        const width = Math.abs(targetX - currentX);
-        const y = (parseInt(element.style.top) || 120) + 6;
-        const line = document.createElement('div');
-        line.className = `eta-line ${targetX >= currentX ? 'future' : 'past'}`;
-        line.style.left = `${left}px`;
-        line.style.top = `${y}px`;
-        line.style.width = `${width}px`;
-        track.appendChild(line);
+        // 点線接続は不要のため描画しない
     }
     
     static attachHomeListeners() {

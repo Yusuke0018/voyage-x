@@ -369,9 +369,9 @@ body[data-theme="light"] {
 .milestone:hover { transform: translateY(-2px); }
 
 /* ETA visualization */
-.eta-line { position: absolute; height: 0; border-top: 2px dashed rgba(55,65,81,0.35); z-index: 1; }
-.eta-line.future { border-color: rgba(99,102,241,0.8); }
-.eta-line.past { border-color: rgba(107,114,128,0.6); }
+.eta-line { display: none; }
+.eta-line.future { display: none; }
+.eta-line.past { display: none; }
 .eta-badge { display: inline-block; margin-top: 4px; padding: 2px 8px; font-size: 12px; border-radius: 999px; border: 1px solid rgba(0,0,0,0.06); }
 .eta-badge.future { background: #EEF2FF; color: #4338CA; }
 .eta-badge.past { background: #F3F4F6; color: #4B5563; }
