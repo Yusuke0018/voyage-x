@@ -173,6 +173,31 @@ body[data-theme="light"] {
     background: var(--accent);
     border-radius: 4px;
     opacity: 0.8;
+    position: relative;
+}
+
+.milestone-resize {
+    position: absolute;
+    width: 12px;
+    height: 20px;
+    top: -6px;
+    cursor: ew-resize;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.milestone:hover .milestone-resize {
+    opacity: 1;
+}
+
+.milestone-resize.left {
+    left: -6px;
+}
+
+.milestone-resize.right {
+    right: -6px;
 }
 
 .milestone-label {

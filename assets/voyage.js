@@ -501,13 +501,45 @@ class UI {
         const leftPosition = monthsFromBase * monthWidth;
         
         element.style.left = `${leftPosition}px`;
-        element.style.top = '100px';
+        
+        // 重なり回避のための高さ調整
+        const existingMilestones = document.querySelectorAll('.milestone');
+        let topPosition = 100;
+        let foundPosition = false;
+        
+        while (!foundPosition && topPosition < 400) {
+            foundPosition = true;
+            for (const existing of existingMilestones) {
+                const existingLeft = parseInt(existing.style.left);
+                const existingTop = parseInt(existing.style.top);
+                const existingWidth = existing.querySelector('.milestone-bar') ? 
+                    parseInt(existing.querySelector('.milestone-bar').style.width) : 50;
+                
+                // 重なり判定
+                if (Math.abs(existingTop - topPosition) < 40) {
+                    const elementWidth = milestone.type === 'range' && milestone.endDate ? 
+                        DateUtil.getMonthsBetween(startDate, new Date(milestone.endDate)) * monthWidth : 50;
+                    
+                    if ((leftPosition < existingLeft + existingWidth) && 
+                        (leftPosition + elementWidth > existingLeft)) {
+                        foundPosition = false;
+                        topPosition += 50;
+                        break;
+                    }
+                }
+            }
+        }
+        
+        element.style.top = `${topPosition}px`;
         
         if (milestone.type === 'range' && milestone.endDate) {
             const endDate = new Date(milestone.endDate);
             const duration = DateUtil.getMonthsBetween(startDate, endDate);
             element.innerHTML = `
-                <div class="milestone-bar" style="width: ${duration * monthWidth}px;"></div>
+                <div class="milestone-bar" style="width: ${duration * monthWidth}px;">
+                    <div class="milestone-resize left"></div>
+                    <div class="milestone-resize right"></div>
+                </div>
                 <div class="milestone-label">${milestone.title}</div>
             `;
         } else {
@@ -628,8 +660,27 @@ class UI {
         // マイルストーンのドラッグ機能
         document.querySelectorAll('.milestone').forEach(milestone => {
             let isDragging = false;
+            let isResizing = false;
+            let resizeSide = null;
             let startX = 0;
             let startLeft = 0;
+            let startWidth = 0;
+            const monthWidth = 100;
+            
+            // リサイズハンドル
+            const resizeHandles = milestone.querySelectorAll('.milestone-resize');
+            resizeHandles.forEach(handle => {
+                handle.addEventListener('mousedown', (e) => {
+                    isResizing = true;
+                    resizeSide = handle.classList.contains('left') ? 'left' : 'right';
+                    startX = e.clientX;
+                    startLeft = parseInt(milestone.style.left);
+                    const bar = milestone.querySelector('.milestone-bar');
+                    startWidth = bar ? parseInt(bar.style.width) : 0;
+                    e.stopPropagation();
+                    e.preventDefault();
+                });
+            });
             
             milestone.addEventListener('mousedown', (e) => {
                 if (e.target.closest('.milestone-resize')) return;
@@ -641,46 +692,74 @@ class UI {
             });
             
             document.addEventListener('mousemove', (e) => {
-                if (!isDragging) return;
-                const deltaX = e.clientX - startX;
-                const newLeft = Math.max(0, startLeft + deltaX);
-                milestone.style.left = `${newLeft}px`;
-            });
-            
-            document.addEventListener('mouseup', (e) => {
-                if (!isDragging) return;
-                isDragging = false;
-                milestone.style.cursor = 'move';
-                
-                // 位置から日付を計算して保存
-                const monthWidth = 100;
-                const track = document.getElementById('timelineTrack');
-                const baseDate = new Date();
-                baseDate.setMonth(baseDate.getMonth() - 6);
-                const monthsOffset = parseInt(milestone.style.left) / monthWidth;
-                const newDate = new Date(baseDate);
-                newDate.setMonth(newDate.getMonth() + Math.round(monthsOffset));
-                
-                const visionId = stateManager.state.currentVisionId;
-                const vision = stateManager.state.visions.find(v => v.id === visionId);
-                const ms = vision.milestones.find(m => m.id === milestone.dataset.id);
-                
-                if (ms.type === 'day') {
-                    const dateStr = `${newDate.getFullYear()}-${String(newDate.getMonth() + 1).padStart(2, '0')}-${String(newDate.getDate()).padStart(2, '0')}`;
-                    stateManager.updateMilestone(visionId, milestone.dataset.id, { startDate: dateStr });
-                } else if (ms.type === 'month') {
-                    const dateStr = `${newDate.getFullYear()}-${String(newDate.getMonth() + 1).padStart(2, '0')}`;
-                    stateManager.updateMilestone(visionId, milestone.dataset.id, { startDate: dateStr });
+                if (isResizing) {
+                    const deltaX = e.clientX - startX;
+                    const bar = milestone.querySelector('.milestone-bar');
+                    
+                    if (resizeSide === 'left') {
+                        const newLeft = Math.max(0, startLeft + deltaX);
+                        const newWidth = Math.max(monthWidth, startWidth - deltaX);
+                        milestone.style.left = `${newLeft}px`;
+                        bar.style.width = `${newWidth}px`;
+                    } else {
+                        const newWidth = Math.max(monthWidth, startWidth + deltaX);
+                        bar.style.width = `${newWidth}px`;
+                    }
+                } else if (isDragging) {
+                    const deltaX = e.clientX - startX;
+                    const newLeft = Math.max(0, startLeft + deltaX);
+                    milestone.style.left = `${newLeft}px`;
                 }
             });
             
-            // クリックで詳細モーダル
+            document.addEventListener('mouseup', (e) => {
+                if (isResizing || isDragging) {
+                    const visionId = stateManager.state.currentVisionId;
+                    const vision = stateManager.state.visions.find(v => v.id === visionId);
+                    const ms = vision.milestones.find(m => m.id === milestone.dataset.id);
+                    
+                    const baseDate = new Date();
+                    baseDate.setMonth(baseDate.getMonth() - 6);
+                    
+                    // 新しい開始日を計算
+                    const monthsOffset = parseInt(milestone.style.left) / monthWidth;
+                    const newStartDate = new Date(baseDate);
+                    newStartDate.setMonth(newStartDate.getMonth() + Math.round(monthsOffset));
+                    
+                    let updates = {};
+                    
+                    if (ms.type === 'range') {
+                        const bar = milestone.querySelector('.milestone-bar');
+                        const duration = Math.round(parseInt(bar.style.width) / monthWidth);
+                        const newEndDate = new Date(newStartDate);
+                        newEndDate.setMonth(newEndDate.getMonth() + duration);
+                        
+                        updates.startDate = `${newStartDate.getFullYear()}-${String(newStartDate.getMonth() + 1).padStart(2, '0')}-01`;
+                        updates.endDate = `${newEndDate.getFullYear()}-${String(newEndDate.getMonth() + 1).padStart(2, '0')}-01`;
+                    } else if (ms.type === 'day') {
+                        updates.startDate = `${newStartDate.getFullYear()}-${String(newStartDate.getMonth() + 1).padStart(2, '0')}-${String(newStartDate.getDate()).padStart(2, '0')}`;
+                    } else if (ms.type === 'month') {
+                        updates.startDate = `${newStartDate.getFullYear()}-${String(newStartDate.getMonth() + 1).padStart(2, '0')}`;
+                    }
+                    
+                    stateManager.updateMilestone(visionId, milestone.dataset.id, updates);
+                    
+                    isDragging = false;
+                    isResizing = false;
+                    resizeSide = null;
+                    milestone.style.cursor = 'move';
+                }
+            });
+            
+            // ダブルクリックで詳細モーダル
             milestone.addEventListener('dblclick', () => {
-                const id = milestone.dataset.id;
-                const visionId = stateManager.state.currentVisionId;
-                const vision = stateManager.state.visions.find(v => v.id === visionId);
-                const ms = vision.milestones.find(m => m.id === id);
-                this.showMilestoneModal(ms);
+                if (!isResizing) {
+                    const id = milestone.dataset.id;
+                    const visionId = stateManager.state.currentVisionId;
+                    const vision = stateManager.state.visions.find(v => v.id === visionId);
+                    const ms = vision.milestones.find(m => m.id === id);
+                    this.showMilestoneModal(ms);
+                }
             });
         });
     }
