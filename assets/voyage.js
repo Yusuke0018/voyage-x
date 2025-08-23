@@ -57,6 +57,21 @@ const DateUtil = {
         const end = new Date(endDate);
         return (end.getFullYear() - start.getFullYear()) * 12 + 
                (end.getMonth() - start.getMonth());
+    },
+    // 日数差（end - start, 日単位）
+    getDaysBetween(startISO, endISO) {
+        try {
+            const s = new Date(startISO);
+            const e = new Date(endISO);
+            return Math.round((e - s) / (1000*60*60*24));
+        } catch { return 0; }
+    },
+    // 今日からの残日数（対象が過去なら負数）
+    daysUntil(targetISO) {
+        const today = new Date();
+        const t = new Date(targetISO);
+        const sISO = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+        return this.getDaysBetween(sISO, targetISO);
     }
 };
 
@@ -534,17 +549,27 @@ class UI {
         currentLine.className = 'current-line';
         currentLine.style.left = `${monthsFromStart * monthWidth}px`;
         track.appendChild(currentLine);
+        // 今日の日付ラベル
+        const todayISO = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+        const currentLabel = document.createElement('div');
+        currentLabel.className = 'current-line-label';
+        currentLabel.style.left = `${monthsFromStart * monthWidth}px`;
+        currentLabel.textContent = `今日 ${DateUtil.formatForDisplay(todayISO,'day')}`;
+        track.appendChild(currentLabel);
         
         // 期日ピン
         const duePin = document.createElement('div');
         duePin.className = 'due-date-pin';
-        duePin.textContent = `期日: ${DateUtil.formatForDisplay(vision.dueDate, 'day')}`;
+        const daysToDue = DateUtil.daysUntil(vision.dueDate);
+        const dueSuffix = daysToDue >= 0 ? `（あと${daysToDue}日）` : `（${Math.abs(daysToDue)}日超過）`;
+        duePin.textContent = `期日: ${DateUtil.formatForDisplay(vision.dueDate, 'day')}${dueSuffix}`;
         timeline.appendChild(duePin);
         
         // マイルストーンの描画（位置は保存されたyを尊重）
         vision.milestones.forEach((milestone) => {
             const element = this.createMilestoneElement(milestone, startDate, monthWidth);
             track.appendChild(element);
+            this.decorateMilestoneETA(element, milestone, startDate, monthWidth, monthsFromStart*monthWidth, track);
         });
         
         track.style.width = `${position}px`;
@@ -588,6 +613,29 @@ class UI {
         }
         
         return element;
+    }
+
+    static decorateMilestoneETA(element, milestone, baseDate, monthWidth, currentX, track) {
+        const targetISO = milestone.type === 'range' && milestone.endDate ? milestone.endDate : milestone.startDate;
+        if (!targetISO) return;
+        const days = DateUtil.daysUntil(targetISO);
+        // バッジ
+        const badge = document.createElement('span');
+        badge.className = `eta-badge ${days >= 0 ? 'future' : 'past'}`;
+        badge.textContent = days >= 0 ? `あと${days}日` : `${Math.abs(days)}日超過`;
+        element.appendChild(badge);
+        // 接続線
+        const targetMonths = DateUtil.getMonthsBetween(baseDate, new Date(targetISO));
+        const targetX = targetMonths * monthWidth;
+        const left = Math.min(currentX, targetX);
+        const width = Math.abs(targetX - currentX);
+        const y = (parseInt(element.style.top) || 120) + 6;
+        const line = document.createElement('div');
+        line.className = `eta-line ${targetX >= currentX ? 'future' : 'past'}`;
+        line.style.left = `${left}px`;
+        line.style.top = `${y}px`;
+        line.style.width = `${width}px`;
+        track.appendChild(line);
     }
     
     static attachHomeListeners() {
