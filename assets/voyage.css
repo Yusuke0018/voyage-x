@@ -301,6 +301,8 @@ body[data-theme="light"] {
     pointer-events: none;
     text-shadow: 0 1px 0 rgba(255,255,255,0.7);
 }
+/* ルーラー内配置時の位置（月数字より上にずらす） */
+.timeline-ruler .due-date-pin { top: 6px; right: calc(12px + env(safe-area-inset-right)); }
 
 .quarter-line {
     position: absolute;
