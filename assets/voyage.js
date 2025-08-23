@@ -519,10 +519,7 @@ class UI {
         const monthWidth = weekWidth; // 既存計算互換のため
         ruler.innerHTML = '';
         track.innerHTML = '';
-        // 月バンドコンテナ
-        const monthBands = document.createElement('div');
-        monthBands.className = 'month-bands';
-        track.appendChild(monthBands);
+        // 月境界と月番号（シンプル表示）
         let weekIndex = 0;
         while (currentDate <= endDate) {
             // 週グリッド
@@ -531,46 +528,30 @@ class UI {
             grid.style.left = `${position}px`;
             track.appendChild(grid);
 
-            // ラベルは隔週で日付表示（M/D）
-            if (weekIndex % 2 === 0) {
-                const tick = document.createElement('div');
-                tick.className = 'ruler-tick';
-                tick.style.left = `${position}px`;
-                ruler.appendChild(tick);
-
-                const label = document.createElement('div');
-                label.className = 'ruler-label';
-                label.textContent = `${currentDate.getMonth() + 1}/${currentDate.getDate()}`;
-                label.style.left = `${position + 6}px`;
-                ruler.appendChild(label);
-            }
+            // 週ラベルは表示しない（シンプル化）
 
             currentDate.setDate(currentDate.getDate() + 7);
             position += weekWidth;
             weekIndex++;
         }
 
-        // 月バンドの描画（開始月から終了月まで）
+        // 月境界線と数字の描画（開始月から終了月まで）
         const baseISO = `${startDate.getFullYear()}-${String(startDate.getMonth()+1).padStart(2,'0')}-${String(startDate.getDate()).padStart(2,'0')}`;
         const monthIter = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
         const lastMonth = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
         while (monthIter <= lastMonth) {
             const mStart = new Date(monthIter.getFullYear(), monthIter.getMonth(), 1);
-            const mEnd = new Date(monthIter.getFullYear(), monthIter.getMonth()+1, 0);
             const wStart = Math.floor(DateUtil.getDaysBetween(baseISO, `${mStart.getFullYear()}-${String(mStart.getMonth()+1).padStart(2,'0')}-01`) / 7);
-            const wEnd = Math.floor(DateUtil.getDaysBetween(baseISO, `${mEnd.getFullYear()}-${String(mEnd.getMonth()+1).padStart(2,'0')}-${String(mEnd.getDate()).padStart(2,'0')}`) / 7) + 1;
             const left = Math.max(0, wStart * weekWidth);
-            const width = Math.max(0, (wEnd - wStart) * weekWidth);
-            const band = document.createElement('div');
-            band.className = 'month-band';
-            band.style.left = `${left}px`;
-            band.style.width = `${width}px`;
-            const chip = document.createElement('div');
-            chip.className = 'month-chip';
-            chip.textContent = `${mStart.getFullYear()}年${mStart.getMonth()+1}月`;
-            band.appendChild(chip);
-            monthBands.appendChild(band);
-            // 次の月
+            const divider = document.createElement('div');
+            divider.className = 'month-divider';
+            divider.style.left = `${left}px`;
+            track.appendChild(divider);
+            const num = document.createElement('div');
+            num.className = 'month-number';
+            num.style.left = `${left}px`;
+            num.textContent = `${mStart.getMonth()+1}`;
+            ruler.appendChild(num);
             monthIter.setMonth(monthIter.getMonth()+1);
         }
         

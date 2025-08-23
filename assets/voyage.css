@@ -611,12 +611,11 @@ button:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(79,70,2
 [data-theme="dark"] .ruler-tick { background: rgba(255,255,255,0.12); }
 .ruler-label { position: absolute; top: 6px; font-size: 12px; color: #6B7280; }
 [data-theme="dark"] .ruler-label { color: rgba(224,230,237,0.75); }
-/* Month bands */
-.month-bands { position: absolute; top: 0; height: 32px; width: 100%; pointer-events: none; z-index: 0; }
-.month-band { position: absolute; top: 4px; height: 24px; background: rgba(99,102,241,0.06); border: 1px solid rgba(99,102,241,0.12); border-radius: 12px; }
-.month-chip { position: absolute; top: 6px; left: 8px; font-size: 12px; color: #4338CA; background: #EEF2FF; border: 1px solid rgba(0,0,0,0.06); border-radius: 999px; padding: 2px 8px; }
-[data-theme="dark"] .month-band { background: rgba(124,58,237,0.08); border-color: rgba(255,255,255,0.1); }
-[data-theme="dark"] .month-chip { color: #E0E6ED; background: rgba(124,58,237,0.2); border-color: rgba(255,255,255,0.12); }
+/* Month markers */
+.month-divider { position: absolute; top: 0; width: 2px; height: 100%; background: rgba(0,0,0,0.12); z-index: 1; }
+[data-theme="dark"] .month-divider { background: rgba(255,255,255,0.18); }
+.month-number { position: absolute; top: 18px; transform: translateX(-50%); font-size: 12px; font-weight: 700; color: #374151; }
+[data-theme="dark"] .month-number { color: rgba(224,230,237,0.9); }
 /* Weekly grid */
 .grid-week { position: absolute; width: 1px; height: 100%; background: rgba(0,0,0,0.04); }
 [data-theme="dark"] .grid-week { background: rgba(255,255,255,0.08); }
