@@ -484,15 +484,13 @@ class UI {
         container.innerHTML = `
             <header class="app-header">
                 <div class="app-header-inner">
-                    <div class="brand" style="gap:14px;">
-                        <button id="backToHome" style="background:#F3F4F6;color:#111827;border:1px solid rgba(0,0,0,0.06);">← ホーム</button>
+                    <div class="brand" style="gap:10px;">
                         <span class="brand-mark"></span>${vision.title}
                     </div>
-                    <div class="header-actions">
-                        <button id="addMilestone">マイルストーンを追加</button>
-                    </div>
+                    <div class="header-actions"></div>
                 </div>
             </header>
+            <button class="edge-home" id="edgeHome" title="ホームへ">🏠</button>
             <div class="timeline-container">
                 <div class="timeline-bar">
                     <div class="timeline-meta">期日: ${DateUtil.formatForDisplay(vision.dueDate, 'day')}</div>
@@ -752,6 +750,7 @@ class UI {
                 clearTimeout(clickTimer);
                 clickTimer = setTimeout(() => {
                     stateManager.state.currentVisionId = card.dataset.id;
+                    try { history.pushState({ view: 'timeline', visionId: card.dataset.id }, '', '#v/' + card.dataset.id); } catch {}
                     UI.renderApp();
                 }, 250);
             });
@@ -766,13 +765,14 @@ class UI {
     }
     
     static attachTimelineListeners() {
-        document.getElementById('backToHome').addEventListener('click', () => {
-            stateManager.state.currentVisionId = null;
-            UI.renderApp();
-        });
-        
-        document.getElementById('addMilestone').addEventListener('click', () => {
-            this.showMilestoneModal();
+        const edgeHome = document.getElementById('edgeHome');
+        if (edgeHome) edgeHome.addEventListener('click', () => {
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                stateManager.state.currentVisionId = null;
+                UI.renderApp();
+            }
         });
         
         const zoom = document.getElementById('zoomRange');
@@ -1287,6 +1287,16 @@ document.addEventListener('DOMContentLoaded', () => {
     stateManager.save();
     stateManager.subscribe(() => UI.renderApp());
     UI.init();
+    // 戻るボタン（ブラウザ/端末）対応
+    window.addEventListener('popstate', (e) => {
+        const st = e.state || {};
+        if (st.view === 'timeline' && st.visionId) {
+            stateManager.state.currentVisionId = st.visionId;
+        } else {
+            stateManager.state.currentVisionId = null;
+        }
+        UI.renderApp();
+    });
     
     // Service Worker登録（PWA対応）
     if ('serviceWorker' in navigator) {
