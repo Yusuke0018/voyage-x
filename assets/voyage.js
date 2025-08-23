@@ -466,9 +466,8 @@ class UI {
         const ruler = document.getElementById('timelineRuler');
         const timeline = document.getElementById('timeline');
         const now = new Date();
-        const startDate = new Date(now.getFullYear(), now.getMonth() - 6, 1);
+        const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
         const endDate = new Date(vision.dueDate);
-        endDate.setMonth(endDate.getMonth() + 6);
         
         // 月ラベルとグリッドの描画
         let currentDate = new Date(startDate);
@@ -799,7 +798,7 @@ class UI {
                     const ms = vision.milestones.find(m => m.id === milestone.dataset.id);
                     
                     const baseDate = new Date();
-                    baseDate.setMonth(baseDate.getMonth() - 6);
+                    baseDate.setDate(1);
                     
                     // 新しい開始日を計算
                     const monthsOffset = parseInt(milestone.style.left) / monthWidth;
