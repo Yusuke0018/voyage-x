@@ -290,21 +290,25 @@ body[data-theme="light"] {
     position: absolute;
     cursor: move;
     user-select: none;
+    transition: transform 0.12s ease;
 }
 
 .milestone-dot {
-    width: 12px;
-    height: 12px;
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
     background: var(--accent);
+    border: 2px solid #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
 
 .milestone-bar {
-    height: 8px;
+    height: 12px;
     background: var(--accent);
     border-radius: 4px;
-    opacity: 0.8;
+    opacity: 0.95;
     position: relative;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
 }
 
 .milestone-resize {
@@ -332,17 +336,43 @@ body[data-theme="light"] {
 }
 
 .milestone-label {
-    font-size: 14px;
-    margin-top: 4px;
+    font-size: 15px;
+    margin-top: 8px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 200px;
+    max-width: 260px;
     background: #fff;
     border: 1px solid rgba(0,0,0,0.06);
-    padding: 6px 10px;
-    border-radius: 10px;
+    padding: 8px 12px;
+    border-radius: 12px;
 }
+
+.milestone:hover { transform: translateY(-2px); }
+
+/* Colorful milestone palette */
+.ms-color-0 .milestone-dot, .ms-color-0 .milestone-bar { background: #EF4444; }
+.ms-color-1 .milestone-dot, .ms-color-1 .milestone-bar { background: #F97316; }
+.ms-color-2 .milestone-dot, .ms-color-2 .milestone-bar { background: #F59E0B; }
+.ms-color-3 .milestone-dot, .ms-color-3 .milestone-bar { background: #10B981; }
+.ms-color-4 .milestone-dot, .ms-color-4 .milestone-bar { background: #14B8A6; }
+.ms-color-5 .milestone-dot, .ms-color-5 .milestone-bar { background: #06B6D4; }
+.ms-color-6 .milestone-dot, .ms-color-6 .milestone-bar { background: #3B82F6; }
+.ms-color-7 .milestone-dot, .ms-color-7 .milestone-bar { background: #6366F1; }
+.ms-color-8 .milestone-dot, .ms-color-8 .milestone-bar { background: #8B5CF6; }
+.ms-color-9 .milestone-dot, .ms-color-9 .milestone-bar { background: #EC4899; }
+
+/* Label accent by color */
+.ms-color-0 .milestone-label { border-left: 4px solid #EF4444; padding-left: 10px; }
+.ms-color-1 .milestone-label { border-left: 4px solid #F97316; padding-left: 10px; }
+.ms-color-2 .milestone-label { border-left: 4px solid #F59E0B; padding-left: 10px; }
+.ms-color-3 .milestone-label { border-left: 4px solid #10B981; padding-left: 10px; }
+.ms-color-4 .milestone-label { border-left: 4px solid #14B8A6; padding-left: 10px; }
+.ms-color-5 .milestone-label { border-left: 4px solid #06B6D4; padding-left: 10px; }
+.ms-color-6 .milestone-label { border-left: 4px solid #3B82F6; padding-left: 10px; }
+.ms-color-7 .milestone-label { border-left: 4px solid #6366F1; padding-left: 10px; }
+.ms-color-8 .milestone-label { border-left: 4px solid #8B5CF6; padding-left: 10px; }
+.ms-color-9 .milestone-label { border-left: 4px solid #EC4899; padding-left: 10px; }
 
 /* Modal */
 .modal {

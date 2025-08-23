@@ -340,6 +340,16 @@ class DataPorter {
 class UI {
     static deletedItem = null;
     static undoTimer = null;
+    static colorCount = 10;
+    static colorIndexFromString(str) {
+        try {
+            let h = 0;
+            for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
+            return h % this.colorCount;
+        } catch (_) {
+            return 0;
+        }
+    }
     
     static init() {
         // デフォルトをライトテーマに変更
@@ -530,7 +540,7 @@ class UI {
         const element = document.createElement('div');
         element.className = 'milestone';
         element.dataset.id = milestone.id;
-        
+
         const startDate = new Date(milestone.startDate);
         const monthsFromBase = DateUtil.getMonthsBetween(baseDate, startDate);
         const leftPosition = monthsFromBase * monthWidth;
@@ -538,6 +548,9 @@ class UI {
         element.style.left = `${leftPosition}px`;
         element.classList.add(`type-${milestone.type}`);
         element.dataset.type = milestone.type;
+        // カラーパレットを安定適用
+        const colorIdx = UI.colorIndexFromString(milestone.id || milestone.title || '');
+        element.classList.add(`ms-color-${colorIdx}`);
         
         // 重なり回避のための高さ調整
         const existingMilestones = document.querySelectorAll('.milestone');
