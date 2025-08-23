@@ -586,6 +586,9 @@ class UI {
         
         track.style.width = `${position}px`;
         ruler.style.width = `${position}px`;
+
+        // ラベルの見切れ補正
+        setTimeout(() => UI.adjustAllMilestoneLabels(), 0);
     }
     
     static createMilestoneElement(milestone, baseDate, monthWidth) {
@@ -625,6 +628,29 @@ class UI {
         }
         
         return element;
+    }
+
+    static adjustAllMilestoneLabels() {
+        const track = document.getElementById('timelineTrack');
+        if (!track) return;
+        const trackRect = track.getBoundingClientRect();
+        document.querySelectorAll('.milestone .milestone-label').forEach(label => {
+            // 初期化
+            label.style.marginLeft = '0px';
+            label.style.maxWidth = '';
+            const rect = label.getBoundingClientRect();
+            // 左はみ出し
+            const leftOverflow = Math.floor((trackRect.left + 8) - rect.left);
+            if (leftOverflow > 0) {
+                label.style.marginLeft = `${leftOverflow}px`;
+            }
+            // 右はみ出し
+            const allowedRight = trackRect.right - 8;
+            if (rect.right > allowedRight) {
+                const allowedWidth = Math.max(80, Math.floor(allowedRight - rect.left));
+                label.style.maxWidth = `${allowedWidth}px`;
+            }
+        });
     }
 
     static decorateMilestoneETA(element, milestone, baseDate, monthWidth, currentX, track) {
@@ -722,6 +748,16 @@ class UI {
                 this.renderApp();
             });
         }
+
+        // ラベル見切れ補正（スクロール・リサイズ時）
+        const timeline = document.getElementById('timeline');
+        let adjustTimer = null;
+        const scheduleAdjust = () => {
+            if (adjustTimer) cancelAnimationFrame(adjustTimer);
+            adjustTimer = requestAnimationFrame(() => UI.adjustAllMilestoneLabels());
+        };
+        if (timeline) timeline.addEventListener('scroll', scheduleAdjust);
+        window.addEventListener('resize', scheduleAdjust);
         
         // マイルストーンのドラッグ機能（クリック=詳細、ドラッグ=移動）
         const timelineEl = document.getElementById('timeline');
@@ -876,6 +912,7 @@ class UI {
                     updates.y = parseInt(milestone.style.top) || 120;
                     
                     stateManager.updateMilestone(visionId, milestone.dataset.id, updates);
+                    UI.adjustAllMilestoneLabels();
                 } else {
                     // クリック扱い: 詳細モーダルを開く
                     const visionId = stateManager.state.currentVisionId;
