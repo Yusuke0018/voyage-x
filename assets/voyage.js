@@ -1100,6 +1100,8 @@ const stateManager = new StateManager();
 
 document.addEventListener('DOMContentLoaded', () => {
     stateManager.load();
+    // 初期表示は必ずホームにする
+    stateManager.state.currentVisionId = null;
     stateManager.subscribe(() => UI.renderApp());
     UI.init();
     
