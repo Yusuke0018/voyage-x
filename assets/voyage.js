@@ -411,10 +411,6 @@ class UI {
                 <h2>${vision.title}</h2>
                 <div class="due-date">📅 ${DateUtil.formatForDisplay(vision.dueDate, 'day')}</div>
                 <div class="milestone-count">📍 マイルストーン: ${vision.milestones.length}個</div>
-                <div class="vision-actions">
-                    <button class="edit-vision" data-id="${vision.id}">編集</button>
-                    <button class="delete-vision delete" data-id="${vision.id}">削除</button>
-                </div>
             </div>
         `).join('');
     }
@@ -640,43 +636,20 @@ class UI {
         });
         
         document.querySelectorAll('.vision-card').forEach(card => {
-            card.addEventListener('click', (e) => {
-                if (e.target.classList.contains('edit-vision') || 
-                    e.target.classList.contains('delete-vision')) {
-                    return;
-                }
-                stateManager.state.currentVisionId = card.dataset.id;
-                UI.renderApp();
+            let clickTimer = null;
+            card.addEventListener('click', () => {
+                clearTimeout(clickTimer);
+                clickTimer = setTimeout(() => {
+                    stateManager.state.currentVisionId = card.dataset.id;
+                    UI.renderApp();
+                }, 250);
             });
-        });
-        
-        document.querySelectorAll('.edit-vision').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const id = btn.dataset.id;
+            card.addEventListener('dblclick', (e) => {
+                e.preventDefault();
+                clearTimeout(clickTimer);
+                const id = card.dataset.id;
                 const vision = stateManager.state.visions.find(v => v.id === id);
                 this.showVisionModal(vision);
-            });
-        });
-        
-        document.querySelectorAll('.delete-vision').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                if (confirm('このビジョンを削除しますか？')) {
-                    const vision = stateManager.state.visions.find(v => v.id === btn.dataset.id);
-                    
-                    // 削除データを保存
-                    this.deletedItem = {
-                        type: 'vision',
-                        data: { ...vision, milestones: [...vision.milestones] }
-                    };
-                    
-                    stateManager.deleteVision(btn.dataset.id);
-                    UI.renderApp();
-                    
-                    // 取り消しトースト表示
-                    this.showUndoToast();
-                }
             });
         });
     }
@@ -996,6 +969,7 @@ class UI {
                 <div style="margin-top: 24px; display: flex; gap: 12px;">
                     <button id="saveVision" style="flex: 1;">保存</button>
                     <button id="cancelVision" style="flex: 1; background: #6B7280;">キャンセル</button>
+                    ${isEdit ? '<button id="deleteVision" style="flex: 1; background: #EF4444;">削除</button>' : ''}
                 </div>
             </div>
         `;
@@ -1026,6 +1000,26 @@ class UI {
             modal.remove();
         });
         
+        // 削除（ダブルクリックのためのモーダル内操作）
+        if (isEdit) {
+            const del = document.getElementById('deleteVision');
+            if (del) {
+                del.addEventListener('click', () => {
+                    if (confirm('このビジョンを削除しますか？')) {
+                        // 削除データを保存（取り消し対応）
+                        UI.deletedItem = {
+                            type: 'vision',
+                            data: { ...vision, milestones: [...vision.milestones] }
+                        };
+                        stateManager.deleteVision(vision.id);
+                        modal.remove();
+                        UI.renderApp();
+                        UI.showUndoToast();
+                    }
+                });
+            }
+        }
+
         // ESCキーで閉じる
         const handleEsc = (e) => {
             if (e.key === 'Escape') {
