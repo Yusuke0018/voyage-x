@@ -132,10 +132,13 @@ class StateManager {
         const vision = this.state.visions.find(v => v.id === visionId);
         if (!vision) return null;
         
+        // 月タイプは廃止 -> dayに強制
+        if (type === 'month') type = 'day';
+
         const milestone = {
             id: this.generateId('ms'),
             type,
-            startDate: DateUtil.normalizeToISO(startDate, type === 'month' ? 'month' : 'day'),
+            startDate: DateUtil.normalizeToISO(startDate, 'day'),
             endDate: type === 'range' ? DateUtil.normalizeToISO(endDate, 'day') : undefined,
             title,
             description,
@@ -158,8 +161,7 @@ class StateManager {
             Object.assign(milestone, updates);
             if (updates.startDate) {
                 const type = updates.type || milestone.type;
-                milestone.startDate = DateUtil.normalizeToISO(updates.startDate, 
-                    type === 'month' ? 'month' : 'day');
+                milestone.startDate = DateUtil.normalizeToISO(updates.startDate, 'day');
             }
             if (updates.endDate && milestone.type === 'range') {
                 milestone.endDate = DateUtil.normalizeToISO(updates.endDate, 'day');
@@ -205,6 +207,19 @@ class StateManager {
                 const parsed = JSON.parse(saved);
                 if (parsed.version === "1.0.0") {
                     this.state = parsed;
+                    // 月タイプのマイルストーンを日付タイプへ移行
+                    this.state.visions.forEach(v => {
+                        v.milestones = v.milestones.map(m => {
+                            if (m.type === 'month') {
+                                const iso = DateUtil.normalizeToISO(m.startDate, 'month');
+                                // YYYY-MM -> YYYY-MM-01
+                                const [yy, mm] = (iso || '').split('-');
+                                const dayIso = (yy && mm) ? `${yy}-${mm.padStart(2,'0')}-01` : iso;
+                                return { ...m, type: 'day', startDate: dayIso };
+                            }
+                            return m;
+                        });
+                    });
                 }
             }
         } catch (e) {
@@ -905,8 +920,6 @@ class UI {
                         updates.endDate = `${newEndDate.getFullYear()}-${String(newEndDate.getMonth() + 1).padStart(2, '0')}-${String(newEndDate.getDate()).padStart(2, '0')}`;
                     } else if (ms.type === 'day') {
                         updates.startDate = `${newStartDate.getFullYear()}-${String(newStartDate.getMonth() + 1).padStart(2, '0')}-${String(newStartDate.getDate()).padStart(2, '0')}`;
-                    } else if (ms.type === 'month') {
-                        updates.startDate = `${newStartDate.getFullYear()}-${String(newStartDate.getMonth() + 1).padStart(2, '0')}`;
                     }
                     // Y位置を保存
                     updates.y = parseInt(milestone.style.top) || 120;
@@ -950,12 +963,11 @@ class UI {
                 <label>タイプ</label>
                 <select id="msType">
                     <option value="day" ${milestone?.type === 'day' ? 'selected' : ''}>単日</option>
-                    <option value="month" ${milestone?.type === 'month' ? 'selected' : ''}>月</option>
                     <option value="range" ${milestone?.type === 'range' ? 'selected' : ''}>期間</option>
                 </select>
                 
                 <label>開始日</label>
-                <input type="${milestone?.type === 'month' ? 'month' : 'date'}" 
+                <input type="date" 
                        id="msStartDate" 
                        value="${milestone?.startDate || ''}">
                 
@@ -992,18 +1004,10 @@ class UI {
         const escHandler = (e) => { if (e.key === 'Escape') { closeModal(); document.removeEventListener('keydown', escHandler); } };
         document.addEventListener('keydown', escHandler);
         
-        // タイプ変更時の表示制御と入力タイプ変更
+        // タイプ変更時の表示制御
         document.getElementById('msType').addEventListener('change', (e) => {
-            const startDateInput = document.getElementById('msStartDate');
             document.getElementById('endDateContainer').style.display = 
                 e.target.value === 'range' ? '' : 'none';
-            
-            // 入力タイプを切り替え
-            if (e.target.value === 'month') {
-                startDateInput.type = 'month';
-            } else {
-                startDateInput.type = 'date';
-            }
         });
         
         // カラーパレット
