@@ -342,14 +342,27 @@ class UI {
     static deletedItem = null;
     static undoTimer = null;
     static colorCount = 10;
-    static colorIndexFromString(str) {
-        try {
-            let h = 0;
-            for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
-            return h % this.colorCount;
-        } catch (_) {
-            return 0;
+    static colorStream = [];
+    static colorPtr = 0;
+    static prepareColorStream(n) {
+        const cycles = Math.ceil(n / this.colorCount) || 1;
+        const arr = [];
+        for (let c = 0; c < cycles; c++) {
+            for (let i = 0; i < this.colorCount; i++) arr.push(i);
         }
+        // shuffle
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        this.colorStream = arr;
+        this.colorPtr = 0;
+    }
+    static nextColorIndex() {
+        if (this.colorStream.length === 0) this.prepareColorStream(10);
+        const idx = this.colorStream[this.colorPtr % this.colorStream.length];
+        this.colorPtr++;
+        return idx;
     }
     
     static init() {
@@ -528,6 +541,7 @@ class UI {
         timeline.appendChild(duePin);
         
         // マイルストーンの描画（位置は保存されたyを尊重）
+        UI.prepareColorStream(vision.milestones.length);
         vision.milestones.forEach((milestone) => {
             const element = this.createMilestoneElement(milestone, startDate, monthWidth);
             track.appendChild(element);
@@ -549,8 +563,8 @@ class UI {
         element.style.left = `${leftPosition}px`;
         element.classList.add(`type-${milestone.type}`);
         element.dataset.type = milestone.type;
-        // カラーパレットを安定適用
-        const colorIdx = UI.colorIndexFromString(milestone.id || milestone.title || '');
+        // カラーパレットを毎回ランダム適用（リロード毎に変化）
+        const colorIdx = UI.nextColorIndex();
         element.classList.add(`ms-color-${colorIdx}`);
         // Y位置（保存値が無ければデフォルト）
         const defaultTop = 120;
