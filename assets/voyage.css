@@ -523,3 +523,15 @@ button:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(79,70,2
 
 /* Toast */
 .undo-toast { background: #fff; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12); border: 1px solid rgba(0,0,0,0.06); }
+
+/* Dark theme corrections for white-first components */
+[data-theme="dark"] .app-header { background: #11161CEE; border-bottom: 1px solid rgba(255,255,255,0.08); }
+[data-theme="dark"] .brand { color: var(--text); }
+[data-theme="dark"] .hero { background: var(--card); color: var(--text); border: 1px solid var(--border); box-shadow: none; }
+[data-theme="dark"] .vision-card { background: var(--card); border: 1px solid var(--border); }
+[data-theme="dark"] .modal-content { background: var(--card); border: 1px solid var(--border); box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
+[data-theme="dark"] .theme-toggle { background: var(--card); border: 1px solid var(--border); }
+[data-theme="dark"] .undo-toast { background: var(--card); border: 1px solid var(--border); box-shadow: 0 8px 24px rgba(0,0,0,0.6); }
+[data-theme="dark"] .vision-actions button { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); color: var(--text); }
+[data-theme="dark"] .timeline { background: #0B0F14; border: 1px solid var(--border); }
+[data-theme="dark"] .month-label { color: rgba(224,230,237,0.6); }
