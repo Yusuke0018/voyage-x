@@ -341,7 +341,11 @@ class UI {
     static undoTimer = null;
     
     static init() {
-        document.body.setAttribute('data-theme', stateManager.state.theme || 'dark');
+        // デフォルトをライトテーマに変更
+        if (!stateManager.state.theme) {
+            stateManager.state.theme = 'light';
+        }
+        document.body.setAttribute('data-theme', stateManager.state.theme);
         this.renderApp();
         this.addThemeToggle();
     }
@@ -379,12 +383,15 @@ class UI {
     static renderHome(container) {
         container.innerHTML = `
             <div class="container">
-                <h1 style="margin-bottom: 32px;">Voyage</h1>
-                <button id="addVision" style="margin-bottom: 24px;">新しいビジョンを追加</button>
-                <div id="visionList"></div>
-                <div style="margin-top: 32px;">
-                    <button id="exportData">データをエクスポート</button>
-                    <button id="importData">データをインポート</button>
+                <div class="hero">
+                    <h1>Voyage</h1>
+                    <p>あなたの目標への道のりを美しく可視化</p>
+                    <button class="hero-button" id="addVision">✨ 新しいビジョンを作成</button>
+                </div>
+                <div class="visions-grid" id="visionList"></div>
+                <div style="text-align: center; margin-top: 40px;">
+                    <button id="exportData" style="margin-right: 12px;">📥 データをエクスポート</button>
+                    <button id="importData">📤 データをインポート</button>
                     <input type="file" id="importFile" accept=".json" style="display: none;">
                 </div>
             </div>
@@ -396,13 +403,27 @@ class UI {
     
     static renderVisionList() {
         const list = document.getElementById('visionList');
+        
+        if (stateManager.state.visions.length === 0) {
+            list.innerHTML = `
+                <div style="text-align: center; padding: 60px 20px; color: var(--text); opacity: 0.6;">
+                    <div style="font-size: 48px; margin-bottom: 16px;">🎯</div>
+                    <p style="font-size: 18px;">まだビジョンがありません</p>
+                    <p style="font-size: 14px;">上のボタンから最初のビジョンを作成しましょう</p>
+                </div>
+            `;
+            return;
+        }
+        
         list.innerHTML = stateManager.state.visions.map(vision => `
             <div class="vision-card animate-in" data-id="${vision.id}">
                 <h2>${vision.title}</h2>
-                <p>期日: ${DateUtil.formatForDisplay(vision.dueDate, 'day')}</p>
-                <p>マイルストーン: ${vision.milestones.length}個</p>
-                <button class="edit-vision" data-id="${vision.id}">編集</button>
-                <button class="delete-vision" data-id="${vision.id}">削除</button>
+                <div class="due-date">📅 ${DateUtil.formatForDisplay(vision.dueDate, 'day')}</div>
+                <div class="milestone-count">📍 マイルストーン: ${vision.milestones.length}個</div>
+                <div class="vision-actions">
+                    <button class="edit-vision" data-id="${vision.id}">編集</button>
+                    <button class="delete-vision delete" data-id="${vision.id}">削除</button>
+                </div>
             </div>
         `).join('');
     }
@@ -554,11 +575,7 @@ class UI {
     
     static attachHomeListeners() {
         document.getElementById('addVision').addEventListener('click', () => {
-            const title = prompt('ビジョンのタイトル:');
-            const dueDate = prompt('期日 (YYYY-MM-DD):');
-            if (title && dueDate) {
-                stateManager.addVision(title, dueDate);
-            }
+            this.showVisionModal();
         });
         
         document.getElementById('exportData').addEventListener('click', () => {
@@ -616,12 +633,7 @@ class UI {
                 e.stopPropagation();
                 const id = btn.dataset.id;
                 const vision = stateManager.state.visions.find(v => v.id === id);
-                const title = prompt('タイトル:', vision.title);
-                const dueDate = prompt('期日 (YYYY-MM-DD):', vision.dueDate);
-                if (title && dueDate) {
-                    stateManager.updateVision(id, { title, dueDate });
-                    UI.renderApp();
-                }
+                this.showVisionModal(vision);
             });
         });
         
@@ -821,12 +833,13 @@ class UI {
                 </select>
                 
                 <label>開始日</label>
-                <input type="text" id="msStartDate" placeholder="YYYY-MM-DD または YYYY-MM" 
+                <input type="${milestone?.type === 'month' ? 'month' : 'date'}" 
+                       id="msStartDate" 
                        value="${milestone?.startDate || ''}">
                 
                 <div id="endDateContainer" style="${milestone?.type === 'range' ? '' : 'display:none'}">
                     <label>終了日</label>
-                    <input type="text" id="msEndDate" placeholder="YYYY-MM-DD" 
+                    <input type="date" id="msEndDate" 
                            value="${milestone?.endDate || ''}">
                 </div>
                 
@@ -843,10 +856,18 @@ class UI {
         `;
         document.body.appendChild(modal);
         
-        // タイプ変更時の表示制御
+        // タイプ変更時の表示制御と入力タイプ変更
         document.getElementById('msType').addEventListener('change', (e) => {
+            const startDateInput = document.getElementById('msStartDate');
             document.getElementById('endDateContainer').style.display = 
                 e.target.value === 'range' ? '' : 'none';
+            
+            // 入力タイプを切り替え
+            if (e.target.value === 'month') {
+                startDateInput.type = 'month';
+            } else {
+                startDateInput.type = 'date';
+            }
         });
         
         // 保存
@@ -918,6 +939,70 @@ class UI {
                 });
             }, 1000);
         });
+    }
+    
+    static showVisionModal(vision = null) {
+        const isEdit = !!vision;
+        const modal = document.createElement('div');
+        modal.className = 'modal active';
+        
+        // 今日の日付をデフォルトに
+        const today = new Date();
+        const defaultDate = vision ? vision.dueDate : 
+            `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+        
+        modal.innerHTML = `
+            <div class="modal-content">
+                <h2>${isEdit ? 'ビジョンを編集' : '新しいビジョンを作成'}</h2>
+                
+                <label>タイトル</label>
+                <input type="text" id="visionTitle" value="${vision?.title || ''}" 
+                       placeholder="例: 新しいプロジェクトを完成させる">
+                
+                <label>期日</label>
+                <input type="date" id="visionDueDate" value="${defaultDate}">
+                
+                <div style="margin-top: 24px; display: flex; gap: 12px;">
+                    <button id="saveVision" style="flex: 1;">保存</button>
+                    <button id="cancelVision" style="flex: 1; background: #6B7280;">キャンセル</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        
+        // 保存
+        document.getElementById('saveVision').addEventListener('click', () => {
+            const title = document.getElementById('visionTitle').value;
+            const dueDate = document.getElementById('visionDueDate').value;
+            
+            if (!title || !dueDate) {
+                alert('タイトルと期日は必須です');
+                return;
+            }
+            
+            if (isEdit) {
+                stateManager.updateVision(vision.id, { title, dueDate });
+            } else {
+                stateManager.addVision(title, dueDate);
+            }
+            
+            modal.remove();
+            UI.renderApp();
+        });
+        
+        // キャンセル
+        document.getElementById('cancelVision').addEventListener('click', () => {
+            modal.remove();
+        });
+        
+        // ESCキーで閉じる
+        const handleEsc = (e) => {
+            if (e.key === 'Escape') {
+                modal.remove();
+                document.removeEventListener('keydown', handleEsc);
+            }
+        };
+        document.addEventListener('keydown', handleEsc);
     }
     
     static showUndoToast() {
@@ -1006,11 +1091,7 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             if (!stateManager.state.currentVisionId) {
                 // ホーム画面なら新規ビジョン
-                const title = prompt('ビジョンのタイトル:');
-                const dueDate = prompt('期日 (YYYY-MM-DD):');
-                if (title && dueDate) {
-                    stateManager.addVision(title, dueDate);
-                }
+                UI.showVisionModal();
             } else {
                 // 年表画面なら新規マイルストーン
                 UI.showMilestoneModal();

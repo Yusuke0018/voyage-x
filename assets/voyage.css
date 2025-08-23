@@ -7,11 +7,13 @@
     --accent-start: #7C3AED;
     --accent-end: #06B6D4;
     
-    /* Light Theme (Daylight Clean) */
-    --bg-light: #F7F8FA;
+    /* Light Theme (Daylight Clean) - デフォルト */
+    --bg-light: #FAFBFC;
     --card-light: #FFFFFF;
-    --text-light: #111827;
-    --accent-light: #0EA5E9;
+    --text-light: #1A202C;
+    --accent-light: #4F46E5;
+    --gradient-light-start: #667EEA;
+    --gradient-light-end: #764BA2;
 }
 
 [data-theme="dark"] {
@@ -62,19 +64,147 @@ body[data-theme="light"] {
     padding: 20px;
 }
 
-/* Vision Cards */
-.vision-card {
-    background: var(--card);
-    border-radius: 12px;
-    padding: 24px;
+/* Hero Section */
+.hero {
+    text-align: center;
+    padding: 60px 20px;
+    background: linear-gradient(135deg, var(--gradient-light-start), var(--gradient-light-end));
+    background-size: 200% 200%;
+    animation: gradientShift 8s ease infinite;
+    border-radius: 24px;
+    margin-bottom: 40px;
+    color: white;
+    box-shadow: 0 20px 40px rgba(102, 126, 234, 0.2);
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.hero h1 {
+    font-size: 48px;
+    font-weight: 700;
     margin-bottom: 16px;
+    letter-spacing: -1px;
+}
+
+.hero p {
+    font-size: 18px;
+    opacity: 0.95;
+    margin-bottom: 32px;
+}
+
+.hero-button {
+    background: white;
+    color: var(--gradient-light-start);
+    padding: 16px 32px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 16px;
+    border: none;
     cursor: pointer;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.hero-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Vision Cards */
+.visions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 24px;
+    margin-bottom: 40px;
+}
+
+.vision-card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 28px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    position: relative;
+    overflow: hidden;
+}
+
+.vision-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--gradient-light-start), var(--gradient-light-end));
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.vision-card:hover::before {
+    transform: scaleX(1);
 }
 
 .vision-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+}
+
+.vision-card h2 {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: var(--text);
+}
+
+.vision-card .due-date {
+    display: inline-block;
+    padding: 6px 12px;
+    background: linear-gradient(135deg, var(--gradient-light-start), var(--gradient-light-end));
+    color: white;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 12px;
+}
+
+.vision-card .milestone-count {
+    color: var(--text);
+    opacity: 0.7;
+    font-size: 14px;
+}
+
+.vision-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.vision-actions button {
+    padding: 8px 16px;
+    font-size: 14px;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.05);
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.vision-actions button:hover {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.vision-actions button.delete {
+    background: rgba(239, 68, 68, 0.1);
+    color: #EF4444;
+}
+
+.vision-actions button.delete:hover {
+    background: rgba(239, 68, 68, 0.2);
 }
 
 /* Theme Toggle */
