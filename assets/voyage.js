@@ -589,13 +589,11 @@ class UI {
             todayBadge.innerHTML = `<span class="today-badge">今日 ${DateUtil.formatForDisplay(todayISO,'day')}</span>`;
         }
         
-        // 期日ピン
-        const duePin = document.createElement('div');
-        duePin.className = 'due-date-pin';
+        // 期日情報は上部バーに表示（重なり回避）
         const daysToDue = DateUtil.daysUntil(vision.dueDate);
         const dueSuffix = daysToDue >= 0 ? `（あと${daysToDue}日）` : `（${Math.abs(daysToDue)}日超過）`;
-        duePin.textContent = `期日: ${DateUtil.formatForDisplay(vision.dueDate, 'day')}${dueSuffix}`;
-        timeline.appendChild(duePin);
+        const meta = document.querySelector('.timeline-meta');
+        if (meta) meta.textContent = `期日: ${DateUtil.formatForDisplay(vision.dueDate, 'day')}${dueSuffix}`;
         
         // マイルストーンの描画（位置は保存されたyを尊重）
         vision.milestones.forEach((milestone) => {
