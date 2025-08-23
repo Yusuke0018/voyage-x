@@ -590,12 +590,12 @@ class UI {
                     <div class="milestone-resize left"></div>
                     <div class="milestone-resize right"></div>
                 </div>
-                <div class="milestone-label">${milestone.title}（${DateUtil.formatForDisplay(milestone.startDate,'day')}〜${DateUtil.formatForDisplay(milestone.endDate,'day')}）</div>
+                <div class="milestone-label">${milestone.title}</div>
             `;
         } else {
             element.innerHTML = `
                 <div class="milestone-dot"></div>
-                <div class="milestone-label">${milestone.title}（${DateUtil.formatForDisplay(milestone.startDate, milestone.type==='month'?'month':'day')}）</div>
+                <div class="milestone-label">${milestone.title}</div>
             `;
         }
         
