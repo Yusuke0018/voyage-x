@@ -571,37 +571,170 @@ class UI {
         });
         
         document.getElementById('addMilestone').addEventListener('click', () => {
-            const type = prompt('タイプ (day/month/range):');
-            const title = prompt('タイトル:');
-            const startDate = prompt('開始日:');
-            const endDate = type === 'range' ? prompt('終了日:') : null;
-            
-            if (type && title && startDate) {
-                stateManager.addMilestone(
-                    stateManager.state.currentVisionId,
-                    type, startDate, endDate, title
-                );
-                UI.renderApp();
-            }
+            this.showMilestoneModal();
         });
         
-        // マイルストーンのドラッグ機能（簡易版）
+        // マイルストーンのドラッグ機能
         document.querySelectorAll('.milestone').forEach(milestone => {
-            milestone.addEventListener('click', () => {
+            let isDragging = false;
+            let startX = 0;
+            let startLeft = 0;
+            
+            milestone.addEventListener('mousedown', (e) => {
+                if (e.target.closest('.milestone-resize')) return;
+                isDragging = true;
+                startX = e.clientX;
+                startLeft = parseInt(milestone.style.left);
+                milestone.style.cursor = 'grabbing';
+                e.preventDefault();
+            });
+            
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                const deltaX = e.clientX - startX;
+                const newLeft = Math.max(0, startLeft + deltaX);
+                milestone.style.left = `${newLeft}px`;
+            });
+            
+            document.addEventListener('mouseup', (e) => {
+                if (!isDragging) return;
+                isDragging = false;
+                milestone.style.cursor = 'move';
+                
+                // 位置から日付を計算して保存
+                const monthWidth = 100;
+                const track = document.getElementById('timelineTrack');
+                const baseDate = new Date();
+                baseDate.setMonth(baseDate.getMonth() - 6);
+                const monthsOffset = parseInt(milestone.style.left) / monthWidth;
+                const newDate = new Date(baseDate);
+                newDate.setMonth(newDate.getMonth() + Math.round(monthsOffset));
+                
+                const visionId = stateManager.state.currentVisionId;
+                const vision = stateManager.state.visions.find(v => v.id === visionId);
+                const ms = vision.milestones.find(m => m.id === milestone.dataset.id);
+                
+                if (ms.type === 'day') {
+                    const dateStr = `${newDate.getFullYear()}-${String(newDate.getMonth() + 1).padStart(2, '0')}-${String(newDate.getDate()).padStart(2, '0')}`;
+                    stateManager.updateMilestone(visionId, milestone.dataset.id, { startDate: dateStr });
+                } else if (ms.type === 'month') {
+                    const dateStr = `${newDate.getFullYear()}-${String(newDate.getMonth() + 1).padStart(2, '0')}`;
+                    stateManager.updateMilestone(visionId, milestone.dataset.id, { startDate: dateStr });
+                }
+            });
+            
+            // クリックで詳細モーダル
+            milestone.addEventListener('dblclick', () => {
                 const id = milestone.dataset.id;
                 const visionId = stateManager.state.currentVisionId;
                 const vision = stateManager.state.visions.find(v => v.id === visionId);
                 const ms = vision.milestones.find(m => m.id === id);
+                this.showMilestoneModal(ms);
+            });
+        });
+    }
+    
+    static showMilestoneModal(milestone = null) {
+        const isEdit = !!milestone;
+        const modal = document.createElement('div');
+        modal.className = 'modal active';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <h2>${isEdit ? 'マイルストーンを編集' : '新しいマイルストーン'}</h2>
+                <label>タイトル</label>
+                <input type="text" id="msTitle" value="${milestone?.title || ''}">
                 
-                if (confirm(`"${ms.title}" を編集しますか？`)) {
-                    const title = prompt('タイトル:', ms.title);
-                    const description = prompt('説明:', ms.description);
-                    if (title !== null) {
-                        stateManager.updateMilestone(visionId, id, { title, description });
-                        UI.renderApp();
-                    }
+                <label>タイプ</label>
+                <select id="msType">
+                    <option value="day" ${milestone?.type === 'day' ? 'selected' : ''}>単日</option>
+                    <option value="month" ${milestone?.type === 'month' ? 'selected' : ''}>月</option>
+                    <option value="range" ${milestone?.type === 'range' ? 'selected' : ''}>期間</option>
+                </select>
+                
+                <label>開始日</label>
+                <input type="text" id="msStartDate" placeholder="YYYY-MM-DD または YYYY-MM" 
+                       value="${milestone?.startDate || ''}">
+                
+                <div id="endDateContainer" style="${milestone?.type === 'range' ? '' : 'display:none'}">
+                    <label>終了日</label>
+                    <input type="text" id="msEndDate" placeholder="YYYY-MM-DD" 
+                           value="${milestone?.endDate || ''}">
+                </div>
+                
+                <label>詳細説明</label>
+                <textarea id="msDescription" rows="10" 
+                          placeholder="自由に記述できます（文字数制限なし）">${milestone?.description || ''}</textarea>
+                
+                <div style="margin-top: 20px; display: flex; gap: 10px;">
+                    <button id="saveMs">保存</button>
+                    <button id="cancelMs" style="background: #666;">キャンセル</button>
+                    ${isEdit ? '<button id="deleteMs" style="background: #d32f2f;">削除</button>' : ''}
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        
+        // タイプ変更時の表示制御
+        document.getElementById('msType').addEventListener('change', (e) => {
+            document.getElementById('endDateContainer').style.display = 
+                e.target.value === 'range' ? '' : 'none';
+        });
+        
+        // 保存
+        document.getElementById('saveMs').addEventListener('click', () => {
+            const title = document.getElementById('msTitle').value;
+            const type = document.getElementById('msType').value;
+            const startDate = document.getElementById('msStartDate').value;
+            const endDate = document.getElementById('msEndDate').value;
+            const description = document.getElementById('msDescription').value;
+            
+            if (!title || !startDate) {
+                alert('タイトルと開始日は必須です');
+                return;
+            }
+            
+            const visionId = stateManager.state.currentVisionId;
+            
+            if (isEdit) {
+                stateManager.updateMilestone(visionId, milestone.id, {
+                    title, type, startDate, endDate, description
+                });
+            } else {
+                stateManager.addMilestone(visionId, type, startDate, endDate, title, description);
+            }
+            
+            modal.remove();
+            UI.renderApp();
+        });
+        
+        // キャンセル
+        document.getElementById('cancelMs').addEventListener('click', () => {
+            modal.remove();
+        });
+        
+        // 削除
+        if (isEdit) {
+            document.getElementById('deleteMs').addEventListener('click', () => {
+                if (confirm('このマイルストーンを削除しますか？')) {
+                    const visionId = stateManager.state.currentVisionId;
+                    stateManager.deleteMilestone(visionId, milestone.id);
+                    modal.remove();
+                    UI.renderApp();
                 }
             });
+        }
+        
+        // 自動保存（説明欄）
+        let saveTimer;
+        document.getElementById('msDescription').addEventListener('input', () => {
+            if (!isEdit) return;
+            clearTimeout(saveTimer);
+            saveTimer = setTimeout(() => {
+                const visionId = stateManager.state.currentVisionId;
+                stateManager.updateMilestone(visionId, milestone.id, {
+                    description: document.getElementById('msDescription').value
+                });
+            }, 1000);
         });
     }
     
