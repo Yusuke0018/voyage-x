@@ -242,6 +242,9 @@ body[data-theme="light"] {
     padding-top: 48px;
 }
 
+/* ドラッグ中は縦スクロールを無効化 */
+.timeline.no-scroll { overflow-y: hidden !important; touch-action: none; }
+
 .timeline-track {
     position: absolute;
     height: 100%;

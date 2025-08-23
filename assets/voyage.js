@@ -675,6 +675,7 @@ class UI {
         }
         
         // マイルストーンのドラッグ機能（クリック=詳細、ドラッグ=移動）
+        const timelineEl = document.getElementById('timeline');
         document.querySelectorAll('.milestone').forEach(milestone => {
             let isDragging = false;
             let isResizing = false;
@@ -714,6 +715,7 @@ class UI {
                 startLeft = parseInt(milestone.style.left);
                 startTop = parseInt(milestone.style.top);
                 milestone.style.cursor = 'grabbing';
+                if (timelineEl) timelineEl.classList.add('no-scroll');
                 e.preventDefault();
             });
             
@@ -727,6 +729,7 @@ class UI {
                 startY = e.touches[0].clientY;
                 startLeft = parseInt(milestone.style.left);
                 startTop = parseInt(milestone.style.top);
+                if (timelineEl) timelineEl.classList.add('no-scroll');
                 e.preventDefault();
             });
             
@@ -773,15 +776,17 @@ class UI {
                 }
             });
             
-            document.addEventListener('touchmove', (e) => {
-                if (pressed || isResizing) {
-                    if (rafId) cancelAnimationFrame(rafId);
-                    rafId = requestAnimationFrame(() => {
-                        handleMove(e.touches[0].clientX, e.touches[0].clientY);
-                    });
-                    e.preventDefault();
-                }
-            });
+            if (timelineEl) {
+                timelineEl.addEventListener('touchmove', (e) => {
+                    if (pressed || isResizing) {
+                        if (rafId) cancelAnimationFrame(rafId);
+                        rafId = requestAnimationFrame(() => {
+                            handleMove(e.touches[0].clientX, e.touches[0].clientY);
+                        });
+                        e.preventDefault();
+                    }
+                }, { passive: false });
+            }
             
             // 終了処理（クリックは詳細表示、移動/リサイズ時のみ更新）
             const handleEnd = () => {
@@ -836,6 +841,7 @@ class UI {
                 pressed = false;
                 resizeSide = null;
                 milestone.style.cursor = 'move';
+                if (timelineEl) timelineEl.classList.remove('no-scroll');
             };
             
             document.addEventListener('mouseup', handleEnd);
