@@ -113,7 +113,7 @@ class StateManager {
     }
     
     // マイルストーン追加
-    addMilestone(visionId, type, startDate, endDate, title, description = '') {
+    addMilestone(visionId, type, startDate, endDate, title, description = '', color = 0) {
         const vision = this.state.visions.find(v => v.id === visionId);
         if (!vision) return null;
         
@@ -124,6 +124,7 @@ class StateManager {
             endDate: type === 'range' ? DateUtil.normalizeToISO(endDate, 'day') : undefined,
             title,
             description,
+            color: Math.max(0, Math.min(9, parseInt(color) || 0)),
             y: 120
         };
         
@@ -541,7 +542,6 @@ class UI {
         timeline.appendChild(duePin);
         
         // マイルストーンの描画（位置は保存されたyを尊重）
-        UI.prepareColorStream(vision.milestones.length);
         vision.milestones.forEach((milestone) => {
             const element = this.createMilestoneElement(milestone, startDate, monthWidth);
             track.appendChild(element);
@@ -563,8 +563,8 @@ class UI {
         element.style.left = `${leftPosition}px`;
         element.classList.add(`type-${milestone.type}`);
         element.dataset.type = milestone.type;
-        // カラーパレットを毎回ランダム適用（リロード毎に変化）
-        const colorIdx = UI.nextColorIndex();
+        // カラーパレットを選択制で適用
+        const colorIdx = Math.max(0, Math.min(9, parseInt(milestone.color) || 0));
         element.classList.add(`ms-color-${colorIdx}`);
         // Y位置（保存値が無ければデフォルト）
         const defaultTop = 120;
@@ -879,6 +879,11 @@ class UI {
                            value="${milestone?.endDate || ''}">
                 </div>
                 
+                <label>カラー</label>
+                <div class="color-palette" id="msColorPalette">
+                    ${Array.from({length: 10}).map((_,i)=>`<button type="button" class="color-swatch ms-color-${i} ${ (milestone?.color ?? 0)===i ? 'selected' : '' }" data-color="${i}"></button>`).join('')}
+                </div>
+                
                 <label>詳細説明</label>
                 <textarea id="msDescription" rows="10" 
                           placeholder="自由に記述できます（文字数制限なし）">${milestone?.description || ''}</textarea>
@@ -915,6 +920,19 @@ class UI {
             }
         });
         
+        // カラーパレット
+        let selectedColor = typeof milestone?.color === 'number' ? milestone.color : 0;
+        const palette = document.getElementById('msColorPalette');
+        if (palette) {
+            palette.querySelectorAll('.color-swatch').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    palette.querySelectorAll('.color-swatch').forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                    selectedColor = parseInt(btn.dataset.color) || 0;
+                });
+            });
+        }
+        
         // 保存
         document.getElementById('saveMs').addEventListener('click', () => {
             const title = document.getElementById('msTitle').value;
@@ -932,10 +950,10 @@ class UI {
             
             if (isEdit) {
                 stateManager.updateMilestone(visionId, milestone.id, {
-                    title, type, startDate, endDate, description
+                    title, type, startDate, endDate, description, color: selectedColor
                 });
             } else {
-                stateManager.addMilestone(visionId, type, startDate, endDate, title, description);
+                stateManager.addMilestone(visionId, type, startDate, endDate, title, description, selectedColor);
             }
             
             closeModal();

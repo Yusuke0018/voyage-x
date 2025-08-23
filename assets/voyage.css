@@ -599,3 +599,18 @@ button:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(79,70,2
 .milestone.type-month .milestone-dot { background: #F59E0B; }
 .milestone.type-range .milestone-bar { background: linear-gradient(90deg, #60A5FA, #7C3AED); opacity: 0.9; }
 [data-theme="dark"] .milestone-label { background: var(--card); border: 1px solid var(--border); }
+
+/* Color palette in modal */
+.color-palette { display: grid; grid-template-columns: repeat(10, 1fr); gap: 8px; margin: 6px 0 12px; }
+.color-swatch { width: 28px; height: 28px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.15); cursor: pointer; }
+.color-swatch.selected { outline: 3px solid #111827; }
+.color-swatch.ms-color-0 { background: #EF4444; }
+.color-swatch.ms-color-1 { background: #F97316; }
+.color-swatch.ms-color-2 { background: #F59E0B; }
+.color-swatch.ms-color-3 { background: #10B981; }
+.color-swatch.ms-color-4 { background: #14B8A6; }
+.color-swatch.ms-color-5 { background: #06B6D4; }
+.color-swatch.ms-color-6 { background: #3B82F6; }
+.color-swatch.ms-color-7 { background: #6366F1; }
+.color-swatch.ms-color-8 { background: #8B5CF6; }
+.color-swatch.ms-color-9 { background: #EC4899; }
