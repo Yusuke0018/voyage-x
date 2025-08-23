@@ -507,6 +507,10 @@ class UI {
                     <div class="timeline-track" id="timelineTrack"></div>
                 </div>
             </div>
+            <div class="bottom-bar" id="bottomBar">
+                <button id="mobileAddMilestone">＋ マイルストーン</button>
+                <button id="mobileJumpToday">今日へ</button>
+            </div>
         `;
         
         this.renderTimelineContent(vision);
@@ -576,6 +580,7 @@ class UI {
         currentLine.className = 'current-line';
         currentLine.style.left = `${monthsFromStart * monthWidth}px`;
         track.appendChild(currentLine);
+        if (timeline) timeline.dataset.currentX = String(monthsFromStart * monthWidth);
         // 今日の日付（トラック上のラベルは非表示にする）
         const todayISO = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
         // 上部バーにも今日バッジを表示
@@ -789,6 +794,16 @@ class UI {
         
         // マイルストーンのドラッグ機能（クリック=詳細、ドラッグ=移動）
         const timelineEl = document.getElementById('timeline');
+        // Mobile bottom bar actions
+        const addMsBtn = document.getElementById('mobileAddMilestone');
+        if (addMsBtn) addMsBtn.addEventListener('click', () => this.showMilestoneModal());
+        const jumpBtn = document.getElementById('mobileJumpToday');
+        if (jumpBtn) jumpBtn.addEventListener('click', () => {
+            const tl = document.getElementById('timeline');
+            if (!tl) return;
+            const x = parseFloat(tl.dataset.currentX || '0');
+            tl.scrollTo({ left: Math.max(0, x - tl.clientWidth * 0.5), behavior: 'smooth' });
+        });
         document.querySelectorAll('.milestone').forEach(milestone => {
             let isDragging = false;
             let isResizing = false;
@@ -812,6 +827,7 @@ class UI {
                     startLeft = parseInt(milestone.style.left);
                     const bar = milestone.querySelector('.milestone-bar');
                     startWidth = bar ? parseInt(bar.style.width) : 0;
+                    document.body.classList.add('dragging');
                     e.stopPropagation();
                     e.preventDefault();
                 });
@@ -829,6 +845,7 @@ class UI {
                 startTop = parseInt(milestone.style.top);
                 milestone.style.cursor = 'grabbing';
                 if (timelineEl) timelineEl.classList.add('no-scroll');
+                document.body.classList.add('dragging');
                 e.preventDefault();
             });
             
@@ -843,6 +860,7 @@ class UI {
                 startLeft = parseInt(milestone.style.left);
                 startTop = parseInt(milestone.style.top);
                 if (timelineEl) timelineEl.classList.add('no-scroll');
+                document.body.classList.add('dragging');
                 e.preventDefault();
             });
             
@@ -953,6 +971,7 @@ class UI {
                 pressed = false;
                 resizeSide = null;
                 milestone.style.cursor = 'move';
+                document.body.classList.remove('dragging');
                 if (timelineEl) timelineEl.classList.remove('no-scroll');
             };
             
@@ -1007,8 +1026,10 @@ class UI {
             </div>
         `;
         document.body.appendChild(modal);
+        document.body.classList.add('modal-open');
+        document.body.classList.add('modal-open');
         const content = modal.querySelector('.modal-content');
-        const closeModal = () => { modal.remove(); };
+        const closeModal = () => { modal.remove(); document.body.classList.remove('modal-open'); };
         // 背景クリックで閉じる
         modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
         // コンテンツ内クリックは伝播させない
@@ -1082,7 +1103,7 @@ class UI {
                     };
                     
                     stateManager.deleteMilestone(visionId, milestone.id);
-                    modal.remove();
+                    closeModal();
                     UI.renderApp();
                     
                     // 取り消しトースト表示
@@ -1152,12 +1173,14 @@ class UI {
             }
             
             modal.remove();
+            document.body.classList.remove('modal-open');
             UI.renderApp();
         });
         
         // キャンセル
         document.getElementById('cancelVision').addEventListener('click', () => {
             modal.remove();
+            document.body.classList.remove('modal-open');
         });
         
         // 削除（ダブルクリックのためのモーダル内操作）
@@ -1173,6 +1196,7 @@ class UI {
                         };
                         stateManager.deleteVision(vision.id);
                         modal.remove();
+                        document.body.classList.remove('modal-open');
                         UI.renderApp();
                         UI.showUndoToast();
                     }
@@ -1184,6 +1208,7 @@ class UI {
         const handleEsc = (e) => {
             if (e.key === 'Escape') {
                 modal.remove();
+                document.body.classList.remove('modal-open');
                 document.removeEventListener('keydown', handleEsc);
             }
         };
