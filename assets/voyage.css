@@ -611,6 +611,9 @@ button:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(79,70,2
 [data-theme="dark"] .ruler-tick { background: rgba(255,255,255,0.12); }
 .ruler-label { position: absolute; top: 6px; font-size: 12px; color: #6B7280; }
 [data-theme="dark"] .ruler-label { color: rgba(224,230,237,0.75); }
+/* Weekly grid */
+.grid-week { position: absolute; width: 1px; height: 100%; background: rgba(0,0,0,0.04); }
+[data-theme="dark"] .grid-week { background: rgba(255,255,255,0.08); }
 
 /* Today badge */
 .today-badge { background: #FEF3C7; color: #92400E; padding: 4px 10px; border-radius: 999px; border: 1px solid rgba(0,0,0,0.06); font-weight: 700; }

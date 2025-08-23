@@ -503,49 +503,51 @@ class UI {
         const ruler = document.getElementById('timelineRuler');
         const timeline = document.getElementById('timeline');
         const now = new Date();
-        const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        // 週単位の開始（週の先頭: 日曜）
+        const startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        startDate.setDate(startDate.getDate() - startDate.getDay());
         const endDate = new Date(vision.dueDate);
+        // 期日を含む週の末まで表示
+        const endTmp = new Date(endDate);
+        endTmp.setDate(endTmp.getDate() + (6 - endTmp.getDay()));
+        endDate.setTime(endTmp.getTime());
         
-        // 月ラベルとグリッドの描画
+        // 週ラベルとグリッドの描画
         let currentDate = new Date(startDate);
         let position = 0;
-        const monthWidth = Math.max(40, Math.min(160, stateManager.state.zoom || 100));
+        const weekWidth = Math.max(20, Math.min(40, Math.round((stateManager.state.zoom || 100) / 4)));
+        const monthWidth = weekWidth; // 既存計算互換のため
         ruler.innerHTML = '';
         track.innerHTML = '';
-        
+        let weekIndex = 0;
         while (currentDate <= endDate) {
-            // ルーラーの目盛り
-            const tick = document.createElement('div');
-            tick.className = 'ruler-tick';
-            tick.style.left = `${position}px`;
-            ruler.appendChild(tick);
-
-            const label = document.createElement('div');
-            label.className = 'ruler-label';
-            label.textContent = `${currentDate.getFullYear()}年${currentDate.getMonth() + 1}月`;
-            label.style.left = `${position + 6}px`;
-            ruler.appendChild(label);
-
-            // 月グリッド
+            // 週グリッド
             const grid = document.createElement('div');
-            grid.className = 'grid-month';
+            grid.className = 'grid-week';
             grid.style.left = `${position}px`;
             track.appendChild(grid);
 
-            // 四半期ライン（1,4,7,10月）
-            if ([0, 3, 6, 9].includes(currentDate.getMonth())) {
-                const quarterLine = document.createElement('div');
-                quarterLine.className = 'grid-quarter';
-                quarterLine.style.left = `${position}px`;
-                track.appendChild(quarterLine);
+            // ラベルは隔週で日付表示（M/D）
+            if (weekIndex % 2 === 0) {
+                const tick = document.createElement('div');
+                tick.className = 'ruler-tick';
+                tick.style.left = `${position}px`;
+                ruler.appendChild(tick);
+
+                const label = document.createElement('div');
+                label.className = 'ruler-label';
+                label.textContent = `${currentDate.getMonth() + 1}/${currentDate.getDate()}`;
+                label.style.left = `${position + 6}px`;
+                ruler.appendChild(label);
             }
-            
-            currentDate.setMonth(currentDate.getMonth() + 1);
-            position += monthWidth;
+
+            currentDate.setDate(currentDate.getDate() + 7);
+            position += weekWidth;
+            weekIndex++;
         }
         
         // 現在地ライン
-        const monthsFromStart = DateUtil.getMonthsBetween(startDate, now);
+        const monthsFromStart = DateUtil.getDaysBetween(startDate.toISOString().slice(0,10), `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`) / 7;
         const currentLine = document.createElement('div');
         currentLine.className = 'current-line';
         currentLine.style.left = `${monthsFromStart * monthWidth}px`;
@@ -583,8 +585,8 @@ class UI {
         element.dataset.id = milestone.id;
         
         const startDate = new Date(milestone.startDate);
-        const monthsFromBase = DateUtil.getMonthsBetween(baseDate, startDate);
-        const leftPosition = monthsFromBase * monthWidth;
+        const weeksFromBase = DateUtil.getDaysBetween(baseDate.toISOString().slice(0,10), milestone.startDate) / 7;
+        const leftPosition = weeksFromBase * monthWidth;
         
         element.style.left = `${leftPosition}px`;
         element.classList.add(`type-${milestone.type}`);
@@ -598,7 +600,7 @@ class UI {
         
         if (milestone.type === 'range' && milestone.endDate) {
             const endDate = new Date(milestone.endDate);
-            const duration = DateUtil.getMonthsBetween(startDate, endDate);
+            const duration = DateUtil.getDaysBetween(milestone.startDate, milestone.endDate) / 7;
             element.innerHTML = `
                 <div class="milestone-bar" style="width: ${duration * monthWidth}px;">
                     <div class="milestone-resize left"></div>
@@ -725,7 +727,7 @@ class UI {
             let startWidth = 0;
             let moved = false;
             let pressed = false;
-            const monthWidth = Math.max(40, Math.min(160, stateManager.state.zoom || 100));
+            const monthWidth = Math.max(20, Math.min(40, Math.round((stateManager.state.zoom || 100)/4)));
             
             // リサイズハンドル
             const resizeHandles = milestone.querySelectorAll('.milestone-resize');
@@ -842,9 +844,9 @@ class UI {
                     baseDate.setDate(1);
                     
                     // 新しい開始日を計算
-                    const monthsOffset = parseInt(milestone.style.left) / monthWidth;
+                    const weeksOffset = Math.round(parseInt(milestone.style.left) / monthWidth);
                     const newStartDate = new Date(baseDate);
-                    newStartDate.setMonth(newStartDate.getMonth() + Math.round(monthsOffset));
+                    newStartDate.setDate(newStartDate.getDate() + (weeksOffset * 7));
                     
                     let updates = {};
                     
@@ -852,10 +854,10 @@ class UI {
                         const bar = milestone.querySelector('.milestone-bar');
                         const duration = Math.round(parseInt(bar.style.width) / monthWidth);
                         const newEndDate = new Date(newStartDate);
-                        newEndDate.setMonth(newEndDate.getMonth() + duration);
+                        newEndDate.setDate(newEndDate.getDate() + (duration * 7));
                         
-                        updates.startDate = `${newStartDate.getFullYear()}-${String(newStartDate.getMonth() + 1).padStart(2, '0')}-01`;
-                        updates.endDate = `${newEndDate.getFullYear()}-${String(newEndDate.getMonth() + 1).padStart(2, '0')}-01`;
+                        updates.startDate = `${newStartDate.getFullYear()}-${String(newStartDate.getMonth() + 1).padStart(2, '0')}-${String(newStartDate.getDate()).padStart(2, '0')}`;
+                        updates.endDate = `${newEndDate.getFullYear()}-${String(newEndDate.getMonth() + 1).padStart(2, '0')}-${String(newEndDate.getDate()).padStart(2, '0')}`;
                     } else if (ms.type === 'day') {
                         updates.startDate = `${newStartDate.getFullYear()}-${String(newStartDate.getMonth() + 1).padStart(2, '0')}-${String(newStartDate.getDate()).padStart(2, '0')}`;
                     } else if (ms.type === 'month') {
