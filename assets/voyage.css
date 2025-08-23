@@ -673,10 +673,10 @@ body.dragging, body.modal-open { overflow: hidden; overscroll-behavior: none; }
 .color-swatch.ms-color-8 { background: #8B5CF6; }
 .color-swatch.ms-color-9 { background: #EC4899; }
 
-/* === Warm Glass Mobile Refresh: variables & overrides === */
+/* === Glass Mobile Refresh: cool (white/blue/black) === */
 :root {
-  --gradient-light-start: #FFD6A5;
-  --gradient-light-end: #FF8E7E;
+  --gradient-light-start: #93C5FD; /* light blue */
+  --gradient-light-end: #3B82F6;   /* blue */
 }
 [data-theme="light"] {
   --accent: linear-gradient(135deg, var(--gradient-light-start), var(--gradient-light-end));
@@ -687,68 +687,85 @@ body.dragging, body.modal-open { overflow: hidden; overscroll-behavior: none; }
     background: linear-gradient(180deg, #FFF7ED 0%, #FFFBEB 100%);
   }
   .app-header {
-    background: rgba(255,255,255,0.78);
-    border-bottom: 1px solid rgba(255,138,76,0.22);
+    background: rgba(255,255,255,0.82);
+    border-bottom: 1px solid rgba(59,130,246,0.18);
     backdrop-filter: saturate(180%) blur(16px);
   }
   .hero {
     background: rgba(255,255,255,0.66);
-    border: 1px solid rgba(255,138,76,0.18);
+    border: 1px solid rgba(59,130,246,0.14);
     backdrop-filter: blur(20px);
-    box-shadow: 0 20px 40px rgba(255,138,76,0.12);
+    box-shadow: 0 20px 40px rgba(59,130,246,0.10);
   }
   .hero h1 { font-size: clamp(24px, 6.2vw, 36px); }
   .hero p { font-size: clamp(14px, 4vw, 16px); }
-  .hero-button { box-shadow: 0 8px 24px rgba(255,119,77,0.20); }
+  .hero-button { box-shadow: 0 8px 24px rgba(59,130,246,0.20); }
 
   .vision-card {
-    background: rgba(255,255,255,0.68);
-    border: 1px solid rgba(255,138,76,0.16);
+    background: rgba(255,255,255,0.70);
+    border: 1px solid rgba(59,130,246,0.14);
     backdrop-filter: blur(14px);
-    box-shadow: 0 10px 30px rgba(255,138,76,0.10);
+    box-shadow: 0 10px 30px rgba(59,130,246,0.10);
   }
   .vision-card .due-date {
-    background: #FFF0E7;
-    color: #9A3412;
+    background: #DBEAFE;
+    color: #1E3A8A;
   }
 
   .timeline {
-    background: rgba(255,255,255,0.68);
-    border: 1px solid rgba(255,138,76,0.16);
+    background: rgba(255,255,255,0.72);
+    border: 1px solid rgba(59,130,246,0.14);
     backdrop-filter: blur(10px);
   }
   .timeline-ruler {
-    background: rgba(255,255,255,0.72);
-    border-bottom: 1px solid rgba(255,138,76,0.16);
+    background: rgba(255,255,255,0.80);
+    border-bottom: 1px solid rgba(59,130,246,0.16);
   }
   .due-date-pin {
-    background: #FFEAD5;
-    color: #7C2D12;
-    border: 1px solid rgba(124,45,18,0.12);
+    background: #DBEAFE;
+    color: #1E3A8A;
+    border: 1px solid rgba(59,130,246,0.14);
     box-shadow: none;
   }
   .milestone-label {
-    background: rgba(255,255,255,0.82);
-    border: 1px solid rgba(255,138,76,0.16);
+    background: rgba(255,255,255,0.86);
+    border: 1px solid rgba(59,130,246,0.14);
     backdrop-filter: blur(10px);
   }
-  .today-badge { background: #FFEDD5; color: #9A3412; }
+  .today-badge { background: #E0F2FE; color: #075985; }
 
   .bottom-bar {
-    background: rgba(255,255,255,0.75);
-    border-top: 1px solid rgba(255,138,76,0.18);
+    background: rgba(255,255,255,0.78);
+    border-top: 1px solid rgba(59,130,246,0.14);
   }
 
   button, .hero-button {
     background: var(--accent);
-    box-shadow: 0 8px 24px rgba(255,119,77,0.20);
+    box-shadow: 0 8px 24px rgba(59,130,246,0.20);
   }
   button:hover, .hero-button:hover {
     transform: translateY(-1px);
-    box-shadow: 0 12px 28px rgba(255,119,77,0.28);
+    box-shadow: 0 12px 28px rgba(59,130,246,0.26);
   }
   input:focus, textarea:focus, select:focus {
-    border-color: #F97316;
-    box-shadow: 0 0 0 3px rgba(249,115,22,0.20);
+    border-color: #3B82F6;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.22);
   }
+}
+
+/* Timeline top bar layout fix on small screens */
+@media (max-width: 768px) {
+  .timeline-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 12px;
+  }
+  .timeline-meta, .timeline-today { flex: 1 1 auto; }
+  .timeline-controls { flex: 1 1 100%; }
+  .timeline-controls label { display: inline-block; margin-bottom: 4px; }
+}
+
+/* Avoid overlap with ruler and top bar */
+.timeline { padding-top: 56px; }
+.due-date-pin { top: 60px; }
 }
