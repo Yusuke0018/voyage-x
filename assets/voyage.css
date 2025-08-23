@@ -290,12 +290,16 @@ body[data-theme="light"] {
     right: calc(12px + env(safe-area-inset-right));
     top: calc(12px + env(safe-area-inset-top));
     padding: 8px 16px;
-    background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
-    color: white;
+    background: #DBEAFE;
+    color: #1E3A8A;
     border-radius: 20px;
     font-weight: 600;
     font-size: 14px;
-    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+    box-shadow: 0 2px 10px rgba(59, 130, 246, 0.18);
+    border: 1px solid rgba(59,130,246,0.16);
+    z-index: 5;
+    pointer-events: none;
+    text-shadow: 0 1px 0 rgba(255,255,255,0.7);
 }
 
 .quarter-line {
