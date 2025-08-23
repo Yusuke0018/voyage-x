@@ -550,13 +550,8 @@ class UI {
         currentLine.className = 'current-line';
         currentLine.style.left = `${monthsFromStart * monthWidth}px`;
         track.appendChild(currentLine);
-        // 今日の日付ラベル（トラック上）
+        // 今日の日付（トラック上のラベルは非表示にする）
         const todayISO = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
-        const currentLabel = document.createElement('div');
-        currentLabel.className = 'current-line-label';
-        currentLabel.style.left = `${monthsFromStart * monthWidth}px`;
-        currentLabel.textContent = `今日 ${DateUtil.formatForDisplay(todayISO,'day')}`;
-        track.appendChild(currentLabel);
         // 上部バーにも今日バッジを表示
         const todayBadge = document.getElementById('todayBadge');
         if (todayBadge) {
