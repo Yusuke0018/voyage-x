@@ -1101,6 +1101,9 @@ document.addEventListener('DOMContentLoaded', () => {
     stateManager.load();
     // 初期表示は必ずホームにする
     stateManager.state.currentVisionId = null;
+    // 常時ライトモードへ統一（永続状態を上書き）
+    stateManager.state.theme = 'light';
+    stateManager.save();
     stateManager.subscribe(() => UI.renderApp());
     UI.init();
     
