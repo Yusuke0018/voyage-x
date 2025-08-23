@@ -765,7 +765,7 @@ class UI {
             
             let rafId = null;
             document.addEventListener('mousemove', (e) => {
-                if (isDragging || isResizing) {
+                if (pressed || isResizing) {
                     if (rafId) cancelAnimationFrame(rafId);
                     rafId = requestAnimationFrame(() => {
                         handleMove(e.clientX, e.clientY);
@@ -774,7 +774,7 @@ class UI {
             });
             
             document.addEventListener('touchmove', (e) => {
-                if (isDragging || isResizing) {
+                if (pressed || isResizing) {
                     if (rafId) cancelAnimationFrame(rafId);
                     rafId = requestAnimationFrame(() => {
                         handleMove(e.touches[0].clientX, e.touches[0].clientY);
