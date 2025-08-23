@@ -238,7 +238,8 @@ body[data-theme="light"] {
     overflow-y: hidden;
     border: 1px solid var(--border);
     border-radius: 8px;
-    background: rgba(0, 0, 0, 0.02);
+    background: #FAFAFA;
+    padding-top: 48px;
 }
 
 .timeline-track {
@@ -337,6 +338,10 @@ body[data-theme="light"] {
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 200px;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.06);
+    padding: 6px 10px;
+    border-radius: 10px;
 }
 
 /* Modal */
@@ -535,3 +540,27 @@ button:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(79,70,2
 [data-theme="dark"] .vision-actions button { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); color: var(--text); }
 [data-theme="dark"] .timeline { background: #0B0F14; border: 1px solid var(--border); }
 [data-theme="dark"] .month-label { color: rgba(224,230,237,0.6); }
+
+/* Timeline UI: Ruler and Grid */
+.timeline-bar { display:flex; align-items:center; justify-content:space-between; padding: 12px 20px; }
+.timeline-meta { color: #6B7280; font-size: 14px; }
+.timeline-controls { display:flex; align-items:center; gap: 10px; font-size: 13px; color: #374151; }
+.timeline-controls input[type="range"] { width: 160px; }
+
+.timeline-ruler { position: sticky; top: 0; height: 40px; background: #FFFFFFE6; border-bottom: 1px solid rgba(0,0,0,0.06); z-index: 2; }
+[data-theme="dark"] .timeline-ruler { background: #11161CEE; border-bottom: 1px solid rgba(255,255,255,0.08); }
+.ruler-tick { position: absolute; top: 0; width: 1px; height: 40px; background: rgba(0,0,0,0.08); }
+[data-theme="dark"] .ruler-tick { background: rgba(255,255,255,0.12); }
+.ruler-label { position: absolute; top: 6px; font-size: 12px; color: #6B7280; }
+[data-theme="dark"] .ruler-label { color: rgba(224,230,237,0.75); }
+
+.grid-month { position: absolute; width: 1px; height: 100%; background: rgba(0,0,0,0.05); }
+[data-theme="dark"] .grid-month { background: rgba(255,255,255,0.08); }
+.grid-quarter { position: absolute; width: 2px; height: 100%; background: rgba(79,70,229,0.35); }
+[data-theme="dark"] .grid-quarter { background: rgba(124,58,237,0.55); }
+
+/* Milestone colors by type */
+.milestone.type-day .milestone-dot { background: #10B981; }
+.milestone.type-month .milestone-dot { background: #F59E0B; }
+.milestone.type-range .milestone-bar { background: linear-gradient(90deg, #60A5FA, #7C3AED); opacity: 0.9; }
+[data-theme="dark"] .milestone-label { background: var(--card); border: 1px solid var(--border); }

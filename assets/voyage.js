@@ -67,7 +67,8 @@ class StateManager {
             version: "1.0.0",
             visions: [],
             currentVisionId: null,
-            theme: 'dark'
+            theme: 'light',
+            zoom: 100
         };
         this.listeners = [];
     }
@@ -460,10 +461,15 @@ class UI {
                 </div>
             </header>
             <div class="timeline-container">
-                <div style="padding: 20px 20px 0;">
-                    <p>期日: ${DateUtil.formatForDisplay(vision.dueDate, 'day')}</p>
+                <div class="timeline-bar">
+                    <div class="timeline-meta">期日: ${DateUtil.formatForDisplay(vision.dueDate, 'day')}</div>
+                    <div class="timeline-controls">
+                        <label for="zoomRange">ズーム</label>
+                        <input type="range" id="zoomRange" min="40" max="160" step="20" value="${stateManager.state.zoom || 100}">
+                    </div>
                 </div>
                 <div class="timeline" id="timeline">
+                    <div class="timeline-ruler" id="timelineRuler"></div>
                     <div class="timeline-track" id="timelineTrack"></div>
                 </div>
             </div>
@@ -475,29 +481,43 @@ class UI {
     
     static renderTimelineContent(vision) {
         const track = document.getElementById('timelineTrack');
+        const ruler = document.getElementById('timelineRuler');
         const timeline = document.getElementById('timeline');
         const now = new Date();
         const startDate = new Date(now.getFullYear(), now.getMonth() - 6, 1);
         const endDate = new Date(vision.dueDate);
         endDate.setMonth(endDate.getMonth() + 6);
         
-        // 月ラベルと四半期ラインの描画
+        // 月ラベルとグリッドの描画
         let currentDate = new Date(startDate);
         let position = 0;
-        const monthWidth = 100; // px per month
+        const monthWidth = Math.max(40, Math.min(160, stateManager.state.zoom || 100));
+        ruler.innerHTML = '';
+        track.innerHTML = '';
         
         while (currentDate <= endDate) {
-            // 月ラベル
+            // ルーラーの目盛り
+            const tick = document.createElement('div');
+            tick.className = 'ruler-tick';
+            tick.style.left = `${position}px`;
+            ruler.appendChild(tick);
+
             const label = document.createElement('div');
-            label.className = 'month-label';
+            label.className = 'ruler-label';
             label.textContent = `${currentDate.getFullYear()}年${currentDate.getMonth() + 1}月`;
-            label.style.left = `${position}px`;
-            track.appendChild(label);
-            
+            label.style.left = `${position + 6}px`;
+            ruler.appendChild(label);
+
+            // 月グリッド
+            const grid = document.createElement('div');
+            grid.className = 'grid-month';
+            grid.style.left = `${position}px`;
+            track.appendChild(grid);
+
             // 四半期ライン（1,4,7,10月）
             if ([0, 3, 6, 9].includes(currentDate.getMonth())) {
                 const quarterLine = document.createElement('div');
-                quarterLine.className = 'quarter-line';
+                quarterLine.className = 'grid-quarter';
                 quarterLine.style.left = `${position}px`;
                 track.appendChild(quarterLine);
             }
@@ -526,6 +546,7 @@ class UI {
         });
         
         track.style.width = `${position}px`;
+        ruler.style.width = `${position}px`;
     }
     
     static createMilestoneElement(milestone, baseDate, monthWidth) {
@@ -538,6 +559,8 @@ class UI {
         const leftPosition = monthsFromBase * monthWidth;
         
         element.style.left = `${leftPosition}px`;
+        element.classList.add(`type-${milestone.type}`);
+        element.dataset.type = milestone.type;
         
         // 重なり回避のための高さ調整
         const existingMilestones = document.querySelectorAll('.milestone');
@@ -577,12 +600,12 @@ class UI {
                     <div class="milestone-resize left"></div>
                     <div class="milestone-resize right"></div>
                 </div>
-                <div class="milestone-label">${milestone.title}</div>
+                <div class="milestone-label">${milestone.title}（${DateUtil.formatForDisplay(milestone.startDate,'day')}〜${DateUtil.formatForDisplay(milestone.endDate,'day')}）</div>
             `;
         } else {
             element.innerHTML = `
                 <div class="milestone-dot"></div>
-                <div class="milestone-label">${milestone.title}</div>
+                <div class="milestone-label">${milestone.title}（${DateUtil.formatForDisplay(milestone.startDate, milestone.type==='month'?'month':'day')}）</div>
             `;
         }
         
@@ -687,6 +710,15 @@ class UI {
             this.showMilestoneModal();
         });
         
+        const zoom = document.getElementById('zoomRange');
+        if (zoom) {
+            zoom.addEventListener('input', (e) => {
+                stateManager.state.zoom = parseInt(e.target.value, 10) || 100;
+                stateManager.save();
+                this.renderApp();
+            });
+        }
+        
         // マイルストーンのドラッグ機能
         document.querySelectorAll('.milestone').forEach(milestone => {
             let isDragging = false;
@@ -695,7 +727,7 @@ class UI {
             let startX = 0;
             let startLeft = 0;
             let startWidth = 0;
-            const monthWidth = 100;
+            const monthWidth = Math.max(40, Math.min(160, stateManager.state.zoom || 100));
             
             // リサイズハンドル
             const resizeHandles = milestone.querySelectorAll('.milestone-resize');
