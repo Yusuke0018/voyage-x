@@ -348,7 +348,7 @@ class UI {
         }
         document.body.setAttribute('data-theme', stateManager.state.theme);
         this.renderApp();
-        this.addThemeToggle();
+        // 白基調へ統一のためテーマトグルは無効化
     }
     
     static renderApp() {
@@ -361,25 +361,7 @@ class UI {
         }
     }
     
-    static addThemeToggle() {
-        if (document.getElementById('themeToggle')) return;
-        
-        const toggle = document.createElement('div');
-        toggle.id = 'themeToggle';
-        toggle.className = 'theme-toggle';
-        toggle.innerHTML = stateManager.state.theme === 'dark' ? '☀️' : '🌙';
-        toggle.title = 'テーマを切り替え';
-        
-        toggle.addEventListener('click', () => {
-            const newTheme = stateManager.state.theme === 'dark' ? 'light' : 'dark';
-            stateManager.state.theme = newTheme;
-            document.body.setAttribute('data-theme', newTheme);
-            toggle.innerHTML = newTheme === 'dark' ? '☀️' : '🌙';
-            stateManager.save();
-        });
-        
-        document.body.appendChild(toggle);
-    }
+    static addThemeToggle() { /* 白基調固定のため非表示 */ }
     
     static renderHome(container) {
         container.innerHTML = `

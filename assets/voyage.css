@@ -238,7 +238,7 @@ body[data-theme="light"] {
     overflow-y: hidden;
     border: 1px solid var(--border);
     border-radius: 8px;
-    background: #FAFAFA;
+    background: #FFFFFF;
     padding-top: 48px;
 }
 
