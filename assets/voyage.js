@@ -723,19 +723,32 @@ class UI {
                 }
             };
             
+            let rafId = null;
             document.addEventListener('mousemove', (e) => {
-                handleMove(e.clientX);
+                if (isDragging || isResizing) {
+                    if (rafId) cancelAnimationFrame(rafId);
+                    rafId = requestAnimationFrame(() => {
+                        handleMove(e.clientX);
+                    });
+                }
             });
             
             document.addEventListener('touchmove', (e) => {
                 if (isDragging || isResizing) {
-                    handleMove(e.touches[0].clientX);
+                    if (rafId) cancelAnimationFrame(rafId);
+                    rafId = requestAnimationFrame(() => {
+                        handleMove(e.touches[0].clientX);
+                    });
                     e.preventDefault();
                 }
             });
             
             // 終了処理
             const handleEnd = () => {
+                if (rafId) {
+                    cancelAnimationFrame(rafId);
+                    rafId = null;
+                }
                 if (isResizing || isDragging) {
                     const visionId = stateManager.state.currentVisionId;
                     const vision = stateManager.state.visions.find(v => v.id === visionId);
@@ -972,11 +985,60 @@ document.addEventListener('DOMContentLoaded', () => {
     stateManager.load();
     stateManager.subscribe(() => UI.renderApp());
     UI.init();
+    
+    // Service Worker登録（PWA対応）
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/voyage-x/sw.js')
+            .then(reg => console.log('Service Worker registered'))
+            .catch(err => console.log('Service Worker registration failed'));
+    }
+    
+    // キーボードショートカット
+    document.addEventListener('keydown', (e) => {
+        // Cmd/Ctrl + S: データエクスポート
+        if ((e.metaKey || e.ctrlKey) && e.key === 's') {
+            e.preventDefault();
+            DataPorter.exportData(stateManager.state);
+        }
+        
+        // Cmd/Ctrl + N: 新規追加
+        if ((e.metaKey || e.ctrlKey) && e.key === 'n') {
+            e.preventDefault();
+            if (!stateManager.state.currentVisionId) {
+                // ホーム画面なら新規ビジョン
+                const title = prompt('ビジョンのタイトル:');
+                const dueDate = prompt('期日 (YYYY-MM-DD):');
+                if (title && dueDate) {
+                    stateManager.addVision(title, dueDate);
+                }
+            } else {
+                // 年表画面なら新規マイルストーン
+                UI.showMilestoneModal();
+            }
+        }
+        
+        // Cmd/Ctrl + T: テーマ切替
+        if ((e.metaKey || e.ctrlKey) && e.key === 't') {
+            e.preventDefault();
+            const toggle = document.getElementById('themeToggle');
+            if (toggle) toggle.click();
+        }
+        
+        // ESC: ホームに戻る
+        if (e.key === 'Escape') {
+            if (stateManager.state.currentVisionId) {
+                stateManager.state.currentVisionId = null;
+                UI.renderApp();
+            }
+        }
+    });
 });
 
-// キャッシュクリア
-if ('caches' in window) {
-    caches.keys().then(names => {
-        names.forEach(name => caches.delete(name));
-    });
+// キャッシュクリア（開発時のみ）
+if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+    if ('caches' in window) {
+        caches.keys().then(names => {
+            names.forEach(name => caches.delete(name));
+        });
+    }
 }
