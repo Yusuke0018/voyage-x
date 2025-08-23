@@ -600,6 +600,7 @@ button:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(79,70,2
 /* Timeline UI: Ruler and Grid */
 .timeline-bar { display:flex; align-items:center; justify-content:space-between; padding: 12px 20px; }
 .timeline-meta { color: #6B7280; font-size: 14px; }
+.timeline-today { color: #374151; }
 .timeline-controls { display:flex; align-items:center; gap: 10px; font-size: 13px; color: #374151; }
 .timeline-controls input[type="range"] { width: 160px; }
 
@@ -609,6 +610,9 @@ button:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(79,70,2
 [data-theme="dark"] .ruler-tick { background: rgba(255,255,255,0.12); }
 .ruler-label { position: absolute; top: 6px; font-size: 12px; color: #6B7280; }
 [data-theme="dark"] .ruler-label { color: rgba(224,230,237,0.75); }
+
+/* Today badge */
+.today-badge { background: #FEF3C7; color: #92400E; padding: 4px 10px; border-radius: 999px; border: 1px solid rgba(0,0,0,0.06); font-weight: 700; }
 
 .grid-month { position: absolute; width: 1px; height: 100%; background: rgba(0,0,0,0.05); }
 [data-theme="dark"] .grid-month { background: rgba(255,255,255,0.08); }

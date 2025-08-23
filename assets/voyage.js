@@ -481,6 +481,7 @@ class UI {
             <div class="timeline-container">
                 <div class="timeline-bar">
                     <div class="timeline-meta">期日: ${DateUtil.formatForDisplay(vision.dueDate, 'day')}</div>
+                    <div class="timeline-today" id="todayBadge"></div>
                     <div class="timeline-controls">
                         <label for="zoomRange">ズーム</label>
                         <input type="range" id="zoomRange" min="40" max="160" step="20" value="${stateManager.state.zoom || 100}">
@@ -549,13 +550,18 @@ class UI {
         currentLine.className = 'current-line';
         currentLine.style.left = `${monthsFromStart * monthWidth}px`;
         track.appendChild(currentLine);
-        // 今日の日付ラベル
+        // 今日の日付ラベル（トラック上）
         const todayISO = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
         const currentLabel = document.createElement('div');
         currentLabel.className = 'current-line-label';
         currentLabel.style.left = `${monthsFromStart * monthWidth}px`;
         currentLabel.textContent = `今日 ${DateUtil.formatForDisplay(todayISO,'day')}`;
         track.appendChild(currentLabel);
+        // 上部バーにも今日バッジを表示
+        const todayBadge = document.getElementById('todayBadge');
+        if (todayBadge) {
+            todayBadge.innerHTML = `<span class="today-badge">今日 ${DateUtil.formatForDisplay(todayISO,'day')}</span>`;
+        }
         
         // 期日ピン
         const duePin = document.createElement('div');
