@@ -889,8 +889,8 @@ class UI {
                     }
                     if (isDragging) {
                         moved = true;
-                        const newLeft = Math.max(0, startLeft + deltaX);
-                        milestone.style.left = `${newLeft}px`;
+                        // ドラッグ時は左右の移動を禁止（Xは固定）
+                        // left は変更しない
                         const timeline = document.getElementById('timeline');
                         const maxY = Math.max(0, (timeline ? timeline.clientHeight - 60 : 540));
                         const newTop = Math.min(Math.max(60, startTop + deltaY), maxY);
@@ -933,28 +933,29 @@ class UI {
                     const vision = stateManager.state.visions.find(v => v.id === visionId);
                     const ms = vision.milestones.find(m => m.id === milestone.dataset.id);
                     
-                    const baseDate = new Date();
-                    baseDate.setDate(1);
-                    
-                    // 新しい開始日を計算
-                    const weeksOffset = Math.round(parseInt(milestone.style.left) / monthWidth);
-                    const newStartDate = new Date(baseDate);
-                    newStartDate.setDate(newStartDate.getDate() + (weeksOffset * 7));
-                    
                     let updates = {};
                     
-                    if (ms.type === 'range') {
-                        const bar = milestone.querySelector('.milestone-bar');
-                        const duration = Math.round(parseInt(bar.style.width) / monthWidth);
-                        const newEndDate = new Date(newStartDate);
-                        newEndDate.setDate(newEndDate.getDate() + (duration * 7));
+                    if (isResizing) {
+                        // リサイズ時のみ日付を更新（ドラッグでは更新しない）
+                        const baseDate = new Date();
+                        baseDate.setDate(1);
+                        // 新しい開始日を計算
+                        const weeksOffset = Math.round(parseInt(milestone.style.left) / monthWidth);
+                        const newStartDate = new Date(baseDate);
+                        newStartDate.setDate(newStartDate.getDate() + (weeksOffset * 7));
                         
-                        updates.startDate = `${newStartDate.getFullYear()}-${String(newStartDate.getMonth() + 1).padStart(2, '0')}-${String(newStartDate.getDate()).padStart(2, '0')}`;
-                        updates.endDate = `${newEndDate.getFullYear()}-${String(newEndDate.getMonth() + 1).padStart(2, '0')}-${String(newEndDate.getDate()).padStart(2, '0')}`;
-                    } else if (ms.type === 'day') {
-                        updates.startDate = `${newStartDate.getFullYear()}-${String(newStartDate.getMonth() + 1).padStart(2, '0')}-${String(newStartDate.getDate()).padStart(2, '0')}`;
+                        if (ms.type === 'range') {
+                            const bar = milestone.querySelector('.milestone-bar');
+                            const duration = Math.round(parseInt(bar.style.width) / monthWidth);
+                            const newEndDate = new Date(newStartDate);
+                            newEndDate.setDate(newEndDate.getDate() + (duration * 7));
+                            updates.startDate = `${newStartDate.getFullYear()}-${String(newStartDate.getMonth() + 1).padStart(2, '0')}-${String(newStartDate.getDate()).padStart(2, '0')}`;
+                            updates.endDate = `${newEndDate.getFullYear()}-${String(newEndDate.getMonth() + 1).padStart(2, '0')}-${String(newEndDate.getDate()).padStart(2, '0')}`;
+                        } else if (ms.type === 'day') {
+                            updates.startDate = `${newStartDate.getFullYear()}-${String(newStartDate.getMonth() + 1).padStart(2, '0')}-${String(newStartDate.getDate()).padStart(2, '0')}`;
+                        }
                     }
-                    // Y位置を保存
+                    // 位置（Y）のみ常に保存
                     updates.y = parseInt(milestone.style.top) || 120;
                     
                     stateManager.updateMilestone(visionId, milestone.dataset.id, updates);
