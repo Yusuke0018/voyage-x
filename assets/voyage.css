@@ -126,7 +126,7 @@ body[data-theme="light"] {
 }
 
 .vision-card {
-    background: linear-gradient(180deg, #FFFFFF, #FBFBFF);
+    background: linear-gradient(180deg, #F4F7FF, #EEF4FF);
     border-radius: 18px;
     padding: 28px;
     cursor: pointer;
@@ -578,7 +578,7 @@ body { line-height: 1.6; font-size: 16px; }
 .hero h1 { background: linear-gradient(135deg, var(--brand-grad-start), var(--brand-grad-end)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 
 /* Cards */
-.vision-card { background: #fff; border-radius: 16px; padding: 24px; border: 1px solid rgba(0,0,0,0.06); transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+.vision-card { background: linear-gradient(180deg, #F4F7FF, #EEF4FF); border-radius: 16px; padding: 24px; border: 1px solid rgba(59,130,246,0.14); transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
 .vision-card:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(0,0,0,0.06); }
 .vision-card .due-date { background: #EEF2FF; color: #4338CA; border-radius: 999px; font-size: 13px; font-weight: 600; }
 .vision-actions button { padding: 8px 14px; font-size: 13px; border-radius: 8px; background: #F3F4F6; border: 1px solid rgba(0,0,0,0.06); }
@@ -722,10 +722,10 @@ body.dragging, body.modal-open { overflow: hidden; overscroll-behavior: none; }
   .hero-button { box-shadow: 0 8px 24px rgba(59,130,246,0.20); }
 
   .vision-card {
-    background: rgba(255,255,255,0.70);
-    border: 1px solid rgba(59,130,246,0.14);
+    background: linear-gradient(180deg, rgba(147,197,253,0.22), rgba(99,102,241,0.16));
+    border: 1px solid rgba(59,130,246,0.18);
     backdrop-filter: blur(14px);
-    box-shadow: 0 10px 30px rgba(59,130,246,0.10);
+    box-shadow: 0 10px 30px rgba(59,130,246,0.12);
   }
   .vision-card .due-date {
     background: #DBEAFE;
