@@ -1,0 +1,23 @@
+{
+  "name": "voyage-x",
+  "version": "1.0.0",
+  "description": "最小×可変×スタイリッシュな個人用年表アプリケーション",
+  "main": "sw.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Yusuke0018/voyage-x.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Yusuke0018/voyage-x/issues"
+  },
+  "homepage": "https://github.com/Yusuke0018/voyage-x#readme",
+  "dependencies": {
+    "sharp": "^0.33.5"
+  }
+}
