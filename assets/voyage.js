@@ -893,7 +893,7 @@ class UI {
                         // left は変更しない
                         const timeline = document.getElementById('timeline');
                         const maxY = Math.max(0, (timeline ? timeline.clientHeight - 60 : 540));
-                        const newTop = Math.min(Math.max(60, startTop + deltaY), maxY);
+                        const newTop = Math.min(Math.max(0, startTop + deltaY), maxY);
                         milestone.style.top = `${newTop}px`;
                     }
                 }
