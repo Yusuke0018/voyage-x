@@ -632,6 +632,8 @@ button:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(79,70,2
 .timeline-today { color: #374151; }
 .timeline-controls { display:flex; align-items:center; gap: 10px; font-size: 13px; color: #374151; }
 .timeline-controls input[type="range"] { width: 160px; }
+.timeline-controls .add-ms-btn { font-weight: 700; background: linear-gradient(135deg, var(--gradient-light-start), var(--gradient-light-end)); color: #fff; border: none; padding: 8px 14px; border-radius: 10px; box-shadow: 0 6px 16px rgba(79,70,229,0.20); }
+.timeline-controls .add-ms-btn:hover { transform: translateY(-1px); box-shadow: 0 10px 22px rgba(79,70,229,0.28); }
 
 /* Mobile-friendly slider */
 @media (max-width: 768px) {

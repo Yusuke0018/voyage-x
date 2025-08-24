@@ -510,6 +510,7 @@ class UI {
                     <div class="timeline-meta">期日: ${DateUtil.formatForDisplay(vision.dueDate, 'day')}</div>
                     <div class="timeline-today" id="todayBadge"></div>
                     <div class="timeline-controls">
+                        <button id="addMilestoneDesktop" class="add-ms-btn">＋ マイルストーン</button>
                         <label for="zoomRange">ズーム</label>
                         <input type="range" id="zoomRange" min="40" max="160" step="20" value="${stateManager.state.zoom || 100}">
                     </div>
@@ -813,6 +814,8 @@ class UI {
         // Mobile bottom bar actions
         const addMsBtn = document.getElementById('mobileAddMilestone');
         if (addMsBtn) addMsBtn.addEventListener('click', () => this.showMilestoneModal());
+        const addDeskBtn = document.getElementById('addMilestoneDesktop');
+        if (addDeskBtn) addDeskBtn.addEventListener('click', () => this.showMilestoneModal());
         const jumpBtn = document.getElementById('mobileJumpToday');
         if (jumpBtn) jumpBtn.addEventListener('click', () => {
             const tl = document.getElementById('timeline');
