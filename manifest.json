@@ -2,7 +2,7 @@
   "name": "Voyage - Personal Timeline",
   "short_name": "Voyage",
   "description": "最小×可変×スタイリッシュな個人用年表アプリ",
-  "start_url": "/voyage-x/",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#FFFFFF",
   "theme_color": "#FFFFFF",
