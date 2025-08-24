@@ -155,42 +155,19 @@ body[data-theme="light"] {
     box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
 }
 
-/* Due days badge */
-.vision-card .days-badge {
-    position: absolute;
-    top: 16px;
-    right: 16px;
-    display: inline-flex;
-    align-items: baseline;
-    gap: 6px;
-    padding: 8px 12px;
-    border-radius: 12px;
-    font-weight: 700;
-    letter-spacing: 0.2px;
-}
+/* Header & Due days badge */
+.vision-card-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.vision-card .days-badge { display: inline-flex; align-items: baseline; gap: 6px; padding: 6px 10px; border-radius: 10px; font-weight: 700; letter-spacing: 0.2px; flex-shrink: 0; }
 .vision-card .days-badge .num { font-size: 22px; line-height: 1; }
 .vision-card .days-badge .unit { font-size: 12px; opacity: 0.9; }
 .vision-card .days-badge .label { font-size: 12px; opacity: 0.9; margin-left: 6px; }
 .vision-card .days-badge.future { color: #fff; background: linear-gradient(135deg, var(--gradient-light-start), var(--gradient-light-end)); box-shadow: 0 6px 16px rgba(79,70,229,0.25); }
 .vision-card .days-badge.past { color: #111827; background: #F3F4F6; border: 1px solid rgba(0,0,0,0.06); }
 
-.vision-card h2 {
-    font-size: 24px;
-    font-weight: 600;
-    margin-bottom: 12px;
-    color: var(--text);
-}
+.vision-card h2 { font-size: 22px; font-weight: 700; margin: 0; color: var(--text); flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-.vision-card .due-date {
-    display: inline-block;
-    padding: 6px 12px;
-    background: linear-gradient(135deg, var(--gradient-light-start), var(--gradient-light-end));
-    color: white;
-    border-radius: 20px;
-    font-size: 14px;
-    font-weight: 500;
-    margin-bottom: 12px;
-}
+.vision-card-meta { display: flex; align-items: center; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+.vision-card .chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; font-size: 13px; background: #F9FAFB; border: 1px solid rgba(0,0,0,0.06); }
 
 .vision-card .milestone-count {
     color: var(--text);
@@ -632,6 +609,7 @@ button:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(79,70,2
 [data-theme="dark"] .brand { color: var(--text); }
 [data-theme="dark"] .hero { background: var(--card); color: var(--text); border: 1px solid var(--border); box-shadow: none; }
 [data-theme="dark"] .vision-card { background: var(--card); border: 1px solid var(--border); }
+[data-theme="dark"] .vision-card .chip { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); color: var(--text); }
 [data-theme="dark"] .vision-card .days-badge.past { background: rgba(255,255,255,0.08); color: #E5E7EB; border: 1px solid rgba(255,255,255,0.12); }
 [data-theme="dark"] .modal-content { background: var(--card); border: 1px solid var(--border); box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
 [data-theme="dark"] .theme-toggle { background: var(--card); border: 1px solid var(--border); }

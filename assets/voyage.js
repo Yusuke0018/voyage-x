@@ -463,14 +463,20 @@ class UI {
         
         list.innerHTML = stateManager.state.visions.map(vision => {
             const days = DateUtil.daysUntil(vision.dueDate);
-            const daysText = days >= 0 ? `あと${days}日` : `${Math.abs(days)}日超過`;
             const daysClass = days >= 0 ? 'future' : 'past';
             return `
             <div class="vision-card animate-in" data-id="${vision.id}">
-                <div class="days-badge ${daysClass}"><span class="num">${Math.abs(days)}</span><span class="unit">日</span>${days >= 0 ? '<span class="label">あと</span>' : '<span class="label">超過</span>'}</div>
-                <h2>${vision.title}</h2>
-                <div class="due-date">📅 ${DateUtil.formatForDisplay(vision.dueDate, 'day')}</div>
-                <div class="milestone-count">📍 マイルストーン: ${vision.milestones.length}個</div>
+                <div class="vision-card-header">
+                    <h2 title="${vision.title}">${vision.title}</h2>
+                    <div class="days-badge ${daysClass}">
+                        ${days >= 0 ? '<span class="label">あと</span>' : '<span class="label">超過</span>'}
+                        <span class="num">${Math.abs(days)}</span><span class="unit">日</span>
+                    </div>
+                </div>
+                <div class="vision-card-meta">
+                    <span class="chip due">📅 ${DateUtil.formatForDisplay(vision.dueDate, 'day')}</span>
+                    <span class="chip count">📍 ${vision.milestones.length}個</span>
+                </div>
             </div>`;
         }).join('');
     }
