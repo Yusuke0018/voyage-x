@@ -468,6 +468,8 @@ class UI {
             const iso = vision.dueDate || '';
             const [yy, mm = '', dd = ''] = iso.split('-');
             const dueShort = yy && mm && dd ? `${yy}/${String(mm).padStart(2,'0')}/${String(dd).padStart(2,'0')}` : DateUtil.formatForDisplay(vision.dueDate, 'day');
+            const note = (vision.completionNote || '').trim();
+            const noteHtml = note ? `<div class="vision-card-note"><span class="note-icon">📝</span><span class="note-text">${note.replace(/\n/g,' ')}</span></div>` : '';
             return `
             <div class="vision-card animate-in" data-id="${vision.id}">
                 <div class="vision-card-header">
@@ -481,6 +483,7 @@ class UI {
                     <span class="chip due">📅 ${dueShort}</span>
                     <span class="chip count">📍 ${vision.milestones.length}個</span>
                 </div>
+                ${noteHtml}
             </div>`;
         }).join('');
     }

@@ -178,6 +178,24 @@ body[data-theme="light"] {
     font-size: 14px;
 }
 
+/* Vision card: completion note */
+.vision-card-note {
+    margin-top: 12px;
+    color: #374151;
+    font-size: 14px;
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    word-break: break-word;
+}
+.vision-card-note .note-icon { margin-right: 8px; opacity: 0.7; font-size: 15px; }
+.vision-card-note .note-text { opacity: 0.9; }
+
+[data-theme="dark"] .vision-card-note { color: rgba(224,230,237,0.85); }
+[data-theme="dark"] .vision-card-note .note-icon { opacity: 0.75; }
+
 .vision-actions {
     display: flex;
     gap: 8px;
