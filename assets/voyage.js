@@ -464,6 +464,9 @@ class UI {
         list.innerHTML = stateManager.state.visions.map(vision => {
             const days = DateUtil.daysUntil(vision.dueDate);
             const daysClass = days >= 0 ? 'future' : 'past';
+            const iso = vision.dueDate || '';
+            const [yy, mm = '', dd = ''] = iso.split('-');
+            const dueShort = yy && mm && dd ? `${yy}/${String(mm).padStart(2,'0')}/${String(dd).padStart(2,'0')}` : DateUtil.formatForDisplay(vision.dueDate, 'day');
             return `
             <div class="vision-card animate-in" data-id="${vision.id}">
                 <div class="vision-card-header">
@@ -474,7 +477,7 @@ class UI {
                     </div>
                 </div>
                 <div class="vision-card-meta">
-                    <span class="chip due">📅 ${DateUtil.formatForDisplay(vision.dueDate, 'day')}</span>
+                    <span class="chip due">📅 ${dueShort}</span>
                     <span class="chip count">📍 ${vision.milestones.length}個</span>
                 </div>
             </div>`;

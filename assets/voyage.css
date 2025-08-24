@@ -119,19 +119,20 @@ body[data-theme="light"] {
 .visions-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 24px;
+    gap: 28px;
     margin-bottom: 40px;
 }
 
 .vision-card {
-    background: var(--card);
-    border-radius: 16px;
+    background: linear-gradient(180deg, #FFFFFF, #FBFBFF);
+    border-radius: 18px;
     padding: 28px;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    border: 1px solid rgba(0, 0, 0, 0.05);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+    border: 1px solid rgba(59, 130, 246, 0.12);
     position: relative;
     overflow: hidden;
+    box-shadow: 0 8px 18px rgba(17, 24, 39, 0.04), 0 14px 34px rgba(17, 24, 39, 0.06);
 }
 
 .vision-card::before {
@@ -151,12 +152,12 @@ body[data-theme="light"] {
 }
 
 .vision-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 28px rgba(17, 24, 39, 0.10), 0 6px 16px rgba(17, 24, 39, 0.06);
 }
 
 /* Header & Due days badge */
-.vision-card-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.vision-card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .vision-card .days-badge { display: inline-flex; align-items: baseline; gap: 6px; padding: 6px 10px; border-radius: 10px; font-weight: 700; letter-spacing: 0.2px; flex-shrink: 0; }
 .vision-card .days-badge .num { font-size: 22px; line-height: 1; }
 .vision-card .days-badge .unit { font-size: 12px; opacity: 0.9; }
@@ -164,10 +165,10 @@ body[data-theme="light"] {
 .vision-card .days-badge.future { color: #fff; background: linear-gradient(135deg, var(--gradient-light-start), var(--gradient-light-end)); box-shadow: 0 6px 16px rgba(79,70,229,0.25); }
 .vision-card .days-badge.past { color: #111827; background: #F3F4F6; border: 1px solid rgba(0,0,0,0.06); }
 
-.vision-card h2 { font-size: 22px; font-weight: 700; margin: 0; color: var(--text); flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vision-card h2 { font-size: 22px; font-weight: 800; margin: 0; color: #0F172A; flex: 1 1 100%; min-width: 0; white-space: normal; overflow: visible; text-overflow: unset; line-height: 1.3; }
 
 .vision-card-meta { display: flex; align-items: center; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
-.vision-card .chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; font-size: 13px; background: #F9FAFB; border: 1px solid rgba(0,0,0,0.06); }
+.vision-card .chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; font-size: 13px; background: #F8FAFF; border: 1px solid rgba(59,130,246,0.14); color: #0F172A; }
 
 .vision-card .milestone-count {
     color: var(--text);
@@ -608,7 +609,8 @@ button:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(79,70,2
 [data-theme="dark"] .app-header { background: #11161CEE; border-bottom: 1px solid rgba(255,255,255,0.08); }
 [data-theme="dark"] .brand { color: var(--text); }
 [data-theme="dark"] .hero { background: var(--card); color: var(--text); border: 1px solid var(--border); box-shadow: none; }
-[data-theme="dark"] .vision-card { background: var(--card); border: 1px solid var(--border); }
+[data-theme="dark"] .vision-card { background: linear-gradient(180deg, rgba(17,24,39,0.88), rgba(17,24,39,0.80)); border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 12px 28px rgba(0,0,0,0.45); }
+[data-theme="dark"] .vision-card h2 { color: var(--text); }
 [data-theme="dark"] .vision-card .chip { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); color: var(--text); }
 [data-theme="dark"] .vision-card .days-badge.past { background: rgba(255,255,255,0.08); color: #E5E7EB; border: 1px solid rgba(255,255,255,0.12); }
 [data-theme="dark"] .modal-content { background: var(--card); border: 1px solid var(--border); box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
