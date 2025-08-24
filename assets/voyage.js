@@ -94,11 +94,12 @@ class StateManager {
     }
     
     // ビジョン追加
-    addVision(title, dueDate) {
+    addVision(title, dueDate, completionNote = '') {
         const vision = {
             id: this.generateId('vision'),
             title,
             dueDate: DateUtil.normalizeToISO(dueDate, 'day'),
+            completionNote: completionNote || '',
             milestones: []
         };
         this.state.visions.push(vision);
@@ -1167,6 +1168,9 @@ class UI {
                 <label>期日</label>
                 <input type="date" id="visionDueDate" value="${defaultDate}">
                 
+                <label style="margin-top: 12px;">達成時の詳細説明（任意）</label>
+                <textarea id="visionCompletionNote" rows="4" placeholder="例: 達成時の状況、学び、次の一歩など" style="width: 100%; resize: vertical;">${(vision?.completionNote || '')}</textarea>
+                
                 <div style="margin-top: 24px; display: flex; gap: 12px;">
                     <button id="saveVision" style="flex: 1;">保存</button>
                     <button id="cancelVision" style="flex: 1; background: #6B7280;">キャンセル</button>
@@ -1180,6 +1184,7 @@ class UI {
         document.getElementById('saveVision').addEventListener('click', () => {
             const title = document.getElementById('visionTitle').value;
             const dueDate = document.getElementById('visionDueDate').value;
+            const completionNote = (document.getElementById('visionCompletionNote')?.value || '').trim();
             
             if (!title || !dueDate) {
                 alert('タイトルと期日は必須です');
@@ -1187,9 +1192,9 @@ class UI {
             }
             
             if (isEdit) {
-                stateManager.updateVision(vision.id, { title, dueDate });
+                stateManager.updateVision(vision.id, { title, dueDate, completionNote });
             } else {
-                stateManager.addVision(title, dueDate);
+                stateManager.addVision(title, dueDate, completionNote);
             }
             
             modal.remove();
