@@ -1313,36 +1313,6 @@ document.addEventListener('DOMContentLoaded', () => {
     stateManager.save();
     stateManager.subscribe(() => UI.renderApp());
     UI.init();
-    // 画面の向き制御（縦固定 + 横向き時の案内）
-    try {
-        // 警告オーバーレイを設置
-        const warn = document.createElement('div');
-        warn.className = 'orientation-warning';
-        warn.setAttribute('aria-hidden', 'true');
-        warn.innerHTML = '<div class="inner">\n            <span class="icon">🔒📱</span>\n            縦向きでのご利用を推奨します。端末の回転をオフにするか、端末を縦に戻してください。\n        </div>';
-        document.body.appendChild(warn);
-
-        // ブラウザが許可する範囲で縦にロック
-        const lockPortrait = async () => {
-            if (screen.orientation && screen.orientation.lock) {
-                try { await screen.orientation.lock('portrait'); } catch (_) {}
-            } else if (screen.lockOrientation) {
-                try { screen.lockOrientation('portrait'); } catch (_) {}
-            }
-        };
-        lockPortrait();
-
-        // 横向き検知で案内を表示
-        const mql = window.matchMedia('(orientation: landscape)');
-        const updateWarn = () => {
-            const isLandscape = mql.matches;
-            warn.style.display = (isLandscape && window.innerWidth <= 1024) ? 'flex' : 'none';
-            document.documentElement.style.overflow = warn.style.display === 'flex' ? 'hidden' : '';
-        };
-        mql.addEventListener ? mql.addEventListener('change', updateWarn) : mql.addListener(updateWarn);
-        window.addEventListener('resize', updateWarn);
-        updateWarn();
-    } catch (_) { /* no-op */ }
     // 戻るボタン（ブラウザ/端末）対応
     window.addEventListener('popstate', (e) => {
         const st = e.state || {};

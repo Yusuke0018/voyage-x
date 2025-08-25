@@ -47,30 +47,6 @@ body {
     -webkit-text-size-adjust: 100%;
 }
 
-/* Landscape orientation blocker */
-.orientation-warning {
-    position: fixed;
-    inset: 0;
-    background: #0B0F14;
-    color: #E0E6ED;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-    text-align: center;
-    padding: 24px;
-}
-.orientation-warning .inner {
-    max-width: 520px;
-    line-height: 1.8;
-    font-size: 16px;
-}
-.orientation-warning .icon { font-size: 40px; margin-bottom: 12px; display: block; }
-
-@media (orientation: landscape) and (max-width: 1024px) {
-    /* スマホ/タブレット横向き時はオーバーレイを表示 */
-    .orientation-warning { display: flex; }
-}
 
 body[data-theme="dark"] {
     --bg: var(--bg-dark);
