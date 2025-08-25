@@ -19,14 +19,8 @@
             console.log('[Orient] Initializing Ultimate Orientation Lock System');
             console.log(`[Orient] Device: Android=${this.isAndroid}, PWA=${this.isPWA}`);
             
-            // 即座にロック試行（フルスクリーンなし）
-            this.tryModernAPI();
-            // リトライロジックは初回のみスキップ
-            setTimeout(() => {
-                if (!this.isLocked) {
-                    this.tryLegacyAPIs();
-                }
-            }, 1000);
+            // 即座にロック試行
+            this.attemptLockWithRetry();
             
             // 複数のユーザーイベントでロック再試行
             ['click', 'touchstart', 'touchend', 'pointerdown'].forEach(event => {
@@ -74,9 +68,8 @@
             // 方法1: モダンScreen Orientation API
             if (await this.tryModernAPI()) return true;
             
-            // 方法2: フルスクリーン + ロック (ユーザー操作時のみ)
-            // 自動フルスクリーンは無効化してフリーズを防ぐ
-            // if (await this.tryFullscreenLock()) return true;
+            // 方法2: フルスクリーン + ロック
+            if (await this.tryFullscreenLock()) return true;
             
             // 方法3: レガシーAPI
             if (this.tryLegacyAPIs()) return true;
@@ -194,9 +187,7 @@
         handleUserInteraction() {
             console.log('[Orient] User interaction detected, retrying lock...');
             this.lockAttempts = 0; // リセット
-            // フルスクリーンは手動操作時のみ許可（フリーズ防止）
-            // this.attemptLockWithRetry();
-            this.tryModernAPI();
+            this.attemptLockWithRetry();
         },
         
         // 画面回転監視
@@ -229,8 +220,7 @@
             if (!orientation.includes('portrait')) {
                 console.log('[Orient] Wrong orientation detected! Correcting...');
                 document.body.classList.add('force-portrait');
-                // フルスクリーンなしで再試行
-                this.tryModernAPI();
+                this.attemptLockWithRetry();
             } else {
                 document.body.classList.remove('force-portrait');
             }
