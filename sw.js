@@ -1,5 +1,5 @@
 // Service Worker for Voyage PWA
-const CACHE_NAME = 'voyage-v1.3.30'; // バージョンを更新してキャッシュクリア
+const CACHE_NAME = 'voyage-v1.3.31'; // バージョンを更新してキャッシュクリア
 const urlsToCache = [
   './',
   'index.html',
