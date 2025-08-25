@@ -1,5 +1,56 @@
 // Voyage.js - Core Application
 
+// ===== Screen Orientation Lock =====
+// 画面を縦向きに固定する
+(function() {
+    function lockOrientation() {
+        try {
+            // Screen Orientation APIが利用可能かチェック
+            if (screen.orientation && typeof screen.orientation.lock === 'function') {
+                // ユーザー操作後のみ動作するため、タッチイベントで再試行
+                screen.orientation.lock('portrait').catch(() => {
+                    // エラーは無視（ユーザー操作なしでは失敗するため）
+                });
+            } 
+            // 古いAPIのフォールバック (Android用)
+            else if (screen.lockOrientation) {
+                screen.lockOrientation('portrait');
+            } 
+            else if (screen.mozLockOrientation) {
+                screen.mozLockOrientation('portrait');
+            } 
+            else if (screen.msLockOrientation) {
+                screen.msLockOrientation('portrait');
+            }
+        } catch (e) {
+            // エラーは無視
+        }
+    }
+    
+    // 初回ロック試行
+    lockOrientation();
+    
+    // ユーザー操作時に再試行
+    document.addEventListener('click', function() {
+        lockOrientation();
+    }, { once: true });
+    
+    document.addEventListener('touchstart', function() {
+        lockOrientation();
+    }, { once: true });
+    
+    // フルスクリーンAPI併用（iOS Safari対策）
+    if (document.documentElement.requestFullscreen) {
+        document.addEventListener('click', function() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().then(() => {
+                    lockOrientation();
+                }).catch(() => {});
+            }
+        }, { once: true });
+    }
+})();
+
 // ===== A1: Date Utilities =====
 const DateUtil = {
     // ISO形式への正規化
