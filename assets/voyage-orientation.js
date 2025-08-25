@@ -281,9 +281,15 @@
         applyCSSFallback() {
             const style = document.createElement('style');
             style.textContent = `
-                /* 横向き時のみ回転補正を適用 */
+                .force-portrait {
+                    position: fixed !important;
+                    transform: rotate(0deg) !important;
+                    transform-origin: center center !important;
+                }
+                
                 @media (orientation: landscape) and (max-width: 896px) {
-                    body.force-portrait {
+                    .force-portrait body,
+                    .force-portrait #app {
                         width: 100vh !important;
                         height: 100vw !important;
                         transform: rotate(-90deg) !important;
@@ -292,45 +298,20 @@
                         top: 100% !important;
                         left: 0 !important;
                     }
-                    
-                    .force-portrait #app {
-                        width: 100vh !important;
-                        height: 100vw !important;
-                        overflow-y: auto !important;
-                        overflow-x: hidden !important;
-                        -webkit-overflow-scrolling: touch !important;
-                    }
                 }
                 
-                /* 縦向き時は通常のスクロールを維持 */
-                @media (orientation: portrait) {
-                    body {
-                        position: relative !important;
-                        overflow-y: auto !important;
-                        -webkit-overflow-scrolling: touch !important;
-                        touch-action: pan-y !important;
-                    }
-                    
-                    #app {
-                        overflow-y: auto !important;
-                        -webkit-overflow-scrolling: touch !important;
-                    }
-                }
-                
-                /* PWAモード専用CSS - スクロールは許可 */
+                /* PWAモード専用CSS */
                 .pwa-mode {
-                    touch-action: pan-y !important;
-                    overflow-y: auto !important;
-                    -webkit-overflow-scrolling: touch !important;
+                    touch-action: none !important;
+                    overflow: hidden !important;
                 }
                 
-                /* Android Samsung Browser対策 - スクロール維持 */
+                /* Android Samsung Browser対策 */
                 @supports (-webkit-appearance: none) {
                     .orientation-locked {
+                        position: fixed !important;
                         width: 100% !important;
                         height: 100% !important;
-                        overflow-y: auto !important;
-                        -webkit-overflow-scrolling: touch !important;
                     }
                 }
             `;
