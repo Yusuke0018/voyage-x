@@ -1,0 +1,11 @@
+timestamp: 20250825-185257
+branch: main
+prev: 4417d5c
+new: 07e51d7
+subject: fix: モバイル横向きの抑止と縦固定
+diff:
+M	assets/voyage.css
+M	assets/voyage.js
+M	index.html
+M	manifest.json
+M	sw.js
