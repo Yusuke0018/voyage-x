@@ -1,53 +1,237 @@
 // Voyage.js - Core Application
 
-// ===== Screen Orientation Lock =====
-// 画面を縦向きに固定する
+// ===== Enhanced Screen Orientation Lock =====
+// 画面を縦向きに固定する（Android PWA対応強化版）
 (function() {
+    let orientationLocked = false;
+    let orientationChangeCount = 0;
+    const MAX_ORIENTATION_ATTEMPTS = 5;
+    
+    // Android detection
+    const isAndroid = /Android/i.test(navigator.userAgent);
+    const isChrome = /Chrome/i.test(navigator.userAgent);
+    const isSamsung = /SamsungBrowser/i.test(navigator.userAgent);
+    
     function lockOrientation() {
+        if (orientationLocked) return;
+        
         try {
-            // Screen Orientation APIが利用可能かチェック
+            // Modern Screen Orientation API (primary method)
             if (screen.orientation && typeof screen.orientation.lock === 'function') {
-                // ユーザー操作後のみ動作するため、タッチイベントで再試行
-                screen.orientation.lock('portrait').catch(() => {
-                    // エラーは無視（ユーザー操作なしでは失敗するため）
+                screen.orientation.lock('portrait-primary').then(() => {
+                    orientationLocked = true;
+                    console.log('Screen orientation locked to portrait');
+                }).catch((error) => {
+                    console.warn('Screen orientation lock failed:', error.message);
+                    // Fallback to legacy methods
+                    tryLegacyLock();
                 });
-            } 
-            // 古いAPIのフォールバック (Android用)
-            else if (screen.lockOrientation) {
-                screen.lockOrientation('portrait');
-            } 
-            else if (screen.mozLockOrientation) {
-                screen.mozLockOrientation('portrait');
-            } 
-            else if (screen.msLockOrientation) {
-                screen.msLockOrientation('portrait');
+            } else {
+                tryLegacyLock();
             }
         } catch (e) {
-            // エラーは無視
+            console.warn('Orientation lock error:', e);
+            tryLegacyLock();
         }
     }
     
-    // 初回ロック試行
-    lockOrientation();
+    function tryLegacyLock() {
+        // Legacy orientation lock methods
+        const methods = [
+            'lockOrientation',
+            'mozLockOrientation', 
+            'msLockOrientation',
+            'webkitLockOrientation'
+        ];
+        
+        for (const method of methods) {
+            if (screen[method]) {
+                try {
+                    const result = screen[method]('portrait-primary') || screen[method]('portrait');
+                    if (result) {
+                        orientationLocked = true;
+                        console.log(`Orientation locked using ${method}`);
+                        break;
+                    }
+                } catch (e) {
+                    console.warn(`${method} failed:`, e);
+                }
+            }
+        }
+    }
     
-    // ユーザー操作時に再試行
-    document.addEventListener('click', function() {
-        lockOrientation();
-    }, { once: true });
+    // Android-specific rotation prevention
+    function preventAndroidRotation() {
+        if (!isAndroid) return;
+        
+        // Force portrait CSS
+        document.documentElement.style.setProperty('--forced-orientation', 'portrait');
+        
+        // Add orientation change listener for Android
+        const handleOrientationChange = () => {
+            orientationChangeCount++;
+            
+            if (orientationChangeCount <= MAX_ORIENTATION_ATTEMPTS) {
+                // Try to lock again after orientation change
+                setTimeout(() => {
+                    lockOrientation();
+                    // Force re-render to portrait
+                    if (window.innerHeight < window.innerWidth) {
+                        document.body.classList.add('force-portrait');
+                        setTimeout(() => {
+                            document.body.classList.remove('force-portrait');
+                        }, 100);
+                    }
+                }, 100);
+            }
+        };
+        
+        // Listen for orientation changes
+        window.addEventListener('orientationchange', handleOrientationChange);
+        window.addEventListener('resize', () => {
+            // Detect rotation by window dimensions
+            if (window.innerHeight < window.innerWidth && orientationChangeCount <= MAX_ORIENTATION_ATTEMPTS) {
+                handleOrientationChange();
+            }
+        });
+    }
     
-    document.addEventListener('touchstart', function() {
-        lockOrientation();
-    }, { once: true });
+    // Enhanced user interaction handlers
+    const userInteractionEvents = ['click', 'touchstart', 'touchend', 'keydown'];
     
-    // フルスクリーンAPI併用（iOS Safari対策）
-    if (document.documentElement.requestFullscreen) {
-        document.addEventListener('click', function() {
+    function setupUserInteractionLock() {
+        const lockOnInteraction = () => {
+            lockOrientation();
+            // Remove listeners after first successful interaction
+            if (orientationLocked) {
+                userInteractionEvents.forEach(event => {
+                    document.removeEventListener(event, lockOnInteraction);
+                });
+            }
+        };
+        
+        userInteractionEvents.forEach(event => {
+            document.addEventListener(event, lockOnInteraction, { 
+                once: !isAndroid, // Android may need multiple attempts
+                passive: true 
+            });
+        });
+    }
+    
+    // PWA fullscreen integration (enhanced)
+    function setupFullscreenIntegration() {
+        if (!document.documentElement.requestFullscreen) return;
+        
+        const requestFullscreenAndLock = () => {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().then(() => {
-                    lockOrientation();
-                }).catch(() => {});
+                    setTimeout(lockOrientation, 100);
+                }).catch((error) => {
+                    console.warn('Fullscreen request failed:', error);
+                });
             }
-        }, { once: true });
+        };
+        
+        // Trigger on user interaction for PWA
+        document.addEventListener('click', requestFullscreenAndLock, { once: true });
+    }
+    
+    // Initialize orientation lock system
+    function init() {
+        console.log('Initializing enhanced orientation lock...', {
+            isAndroid,
+            isChrome,
+            isSamsung,
+            hasOrientationAPI: !!screen.orientation,
+            hasLegacyAPI: !!screen.lockOrientation
+        });
+        
+        // Immediate lock attempt
+        lockOrientation();
+        
+        // Setup Android-specific handling
+        preventAndroidRotation();
+        
+        // Setup user interaction locks
+        setupUserInteractionLock();
+        
+        // Setup fullscreen integration for PWA
+        setupFullscreenIntegration();
+        
+        // Additional Android Chrome PWA handling
+        if (isAndroid && window.matchMedia('(display-mode: standalone)').matches) {
+            console.log('Running as Android PWA, applying enhanced locks...');
+            setTimeout(lockOrientation, 500);
+            setTimeout(lockOrientation, 1000);
+            
+            // Enable Wake Lock API to prevent device sleep during use
+            setupWakeLock();
+        }
+        
+        // Visual Viewport API integration
+        setupVisualViewportHandler();
+    }
+    
+    // Wake Lock API for better PWA experience
+    function setupWakeLock() {
+        if (!('wakeLock' in navigator)) return;
+        
+        let wakeLock = null;
+        
+        const requestWakeLock = async () => {
+            try {
+                wakeLock = await navigator.wakeLock.request('screen');
+                console.log('Wake lock acquired');
+                
+                wakeLock.addEventListener('release', () => {
+                    console.log('Wake lock released');
+                });
+            } catch (err) {
+                console.warn('Wake lock request failed:', err);
+            }
+        };
+        
+        // Request wake lock on user interaction
+        document.addEventListener('click', requestWakeLock, { once: true });
+        
+        // Re-acquire wake lock when page becomes visible
+        document.addEventListener('visibilitychange', async () => {
+            if (wakeLock !== null && document.visibilityState === 'visible') {
+                await requestWakeLock();
+            }
+        });
+    }
+    
+    // Visual Viewport API for better mobile handling
+    function setupVisualViewportHandler() {
+        if (!window.visualViewport) return;
+        
+        const handleViewportChange = () => {
+            // Detect potential orientation change via viewport
+            const viewport = window.visualViewport;
+            const isLandscape = viewport.width > viewport.height;
+            
+            if (isAndroid && isLandscape && orientationChangeCount <= MAX_ORIENTATION_ATTEMPTS) {
+                console.log('Viewport change detected landscape, applying correction...');
+                setTimeout(() => {
+                    lockOrientation();
+                    document.body.classList.add('force-portrait');
+                    setTimeout(() => {
+                        document.body.classList.remove('force-portrait');
+                    }, 200);
+                }, 50);
+            }
+        };
+        
+        window.visualViewport.addEventListener('resize', handleViewportChange);
+        window.visualViewport.addEventListener('scroll', handleViewportChange);
+    }
+    
+    // Start when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
     }
 })();
 

@@ -4,9 +4,15 @@
   "description": "最小×可変×スタイリッシュな個人用年表アプリ",
   "start_url": "./",
   "display": "standalone",
+  "display_override": ["standalone", "fullscreen"],
   "background_color": "#FFFFFF",
   "theme_color": "#FFFFFF",
-  "orientation": "portrait",
+  "orientation": "portrait-primary",
+  "prefer_related_applications": false,
+  "scope": "/",
+  "lang": "ja",
+  "dir": "ltr",
+  "categories": ["productivity", "utilities"],
   "icons": [
     {
       "src": "assets/icon-192.png",
@@ -20,5 +26,24 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
-  ]
+  ],
+  "shortcuts": [
+    {
+      "name": "新しいビジョン",
+      "short_name": "New Vision",
+      "description": "新しいビジョンを作成",
+      "url": "./?action=new-vision",
+      "icons": [
+        {
+          "src": "assets/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "protocol_handlers": [],
+  "edge_side_panel": {},
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  }
 }

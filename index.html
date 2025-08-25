@@ -2,7 +2,14 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no, maximum-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0, shrink-to-fit=no">
+    <!-- Enhanced Android rotation prevention -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="screen-orientation" content="portrait">
+    <meta name="orientation" content="portrait">
+    <meta name="msapplication-orientation" content="portrait">
     <title>Voyage - Personal Timeline</title>
     <meta name="description" content="最小×可変×スタイリッシュな個人用年表アプリ">
     <meta name="theme-color" content="#FFFFFF">
@@ -11,6 +18,7 @@
     <meta http-equiv="Expires" content="0" />
     <link rel="manifest" href="manifest.json?v=20250825-respect02">
     <link rel="stylesheet" href="assets/voyage.css?v=20250825-respect02">
+    <link rel="stylesheet" href="assets/orientation-fallback.css?v=20250825-respect02" media="screen and (orientation: landscape)">
     <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png?v=20250825-respect02">
     <link rel="mask-icon" href="assets/icon.svg" color="#3B82F6">
     
@@ -21,6 +29,7 @@
 </head>
 <body>
     <div id="app"></div>
+    <script src="assets/voyage-orientation.js?v=20250825-ultimate01"></script>
     <script src="assets/voyage.js?v=20250825-respect02"></script>
 </body>
 </html>
