@@ -47,6 +47,12 @@ body {
     -webkit-text-size-adjust: 100%;
 }
 
+@media screen and (orientation: landscape) and (max-width: 896px) {
+    body {
+        transform: rotate(0deg) !important;
+        transform-origin: center center !important;
+    }
+}
 
 body[data-theme="dark"] {
     --bg: var(--bg-dark);
