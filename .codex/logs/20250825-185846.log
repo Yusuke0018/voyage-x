@@ -1,0 +1,11 @@
+timestamp: 20250825-185846
+branch: main
+prev: 63b8776
+new: 0cdefb1
+subject: fix: 端末設定尊重の回転制御へ修正
+diff:
+M	assets/voyage.css
+M	assets/voyage.js
+M	index.html
+M	manifest.json
+M	sw.js
