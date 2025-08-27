@@ -669,74 +669,76 @@ class UI {
         return element;
     }
 
-    static showMilestoneCards(vision, cardElement) {
-        // 既存のマイルストーンカード表示を削除
-        const existingOverlay = document.querySelector('.milestone-cards-overlay');
-        if (existingOverlay) {
-            existingOverlay.remove();
+    static toggleMilestoneExpansion(card) {
+        const visionId = card.dataset.id;
+        const vision = stateManager.state.visions.find(v => v.id === visionId);
+        
+        // 既存の展開を確認
+        let expansionContainer = card.querySelector('.milestone-expansion');
+        
+        if (expansionContainer) {
+            // 既に展開されている場合は閉じる
+            card.classList.remove('expanded');
+            expansionContainer.style.maxHeight = '0';
+            setTimeout(() => expansionContainer.remove(), 300);
             return;
         }
         
-        // オーバーレイを作成
-        const overlay = document.createElement('div');
-        overlay.className = 'milestone-cards-overlay';
-        overlay.addEventListener('click', (e) => {
-            if (e.target === overlay) {
-                overlay.remove();
+        // 他のカードの展開を閉じる
+        document.querySelectorAll('.vision-card.expanded').forEach(otherCard => {
+            if (otherCard !== card) {
+                otherCard.classList.remove('expanded');
+                const otherExpansion = otherCard.querySelector('.milestone-expansion');
+                if (otherExpansion) {
+                    otherExpansion.style.maxHeight = '0';
+                    setTimeout(() => otherExpansion.remove(), 300);
+                }
             }
         });
         
-        // カードコンテナを作成
-        const container = document.createElement('div');
-        container.className = 'milestone-cards-container';
-        
-        // ビジョン情報ヘッダー
-        const header = document.createElement('div');
-        header.className = 'milestone-cards-header';
-        const daysUntil = DateUtil.daysUntil(vision.dueDate);
-        const daysClass = daysUntil >= 0 ? 'future' : 'past';
-        const daysText = daysUntil >= 0 ? `あと${daysUntil}日` : `${Math.abs(daysUntil)}日超過`;
-        
-        header.innerHTML = `
-            <div class="milestone-cards-title">
-                <h2>${vision.title}</h2>
-                <span class="milestone-cards-due ${daysClass}">${daysText}</span>
-            </div>
-            <button class="milestone-cards-close">×</button>
-        `;
-        
-        // タイムラインボタンを追加
-        const timelineBtn = document.createElement('button');
-        timelineBtn.className = 'milestone-cards-timeline-btn';
-        timelineBtn.innerHTML = '📅 タイムラインで見る';
-        timelineBtn.addEventListener('click', () => {
-            stateManager.state.currentVisionId = vision.id;
-            try { history.pushState({ view: 'timeline', visionId: vision.id }, '', '#v/' + vision.id); } catch {}
-            UI.renderApp();
-        });
-        
-        // マイルストーンカードグリッド
-        const grid = document.createElement('div');
-        grid.className = 'milestone-cards-grid';
+        // 展開コンテナを作成
+        expansionContainer = document.createElement('div');
+        expansionContainer.className = 'milestone-expansion';
         
         if (vision.milestones.length === 0) {
-            grid.innerHTML = `
-                <div class="milestone-cards-empty">
-                    <span class="milestone-cards-empty-icon">📍</span>
-                    <p>まだマイルストーンがありません</p>
-                    <button class="milestone-cards-add-btn">+ 最初のマイルストーンを追加</button>
+            expansionContainer.innerHTML = `
+                <div class="milestone-expansion-empty">
+                    <span class="milestone-empty-icon">🎯</span>
+                    <p>マイルストーンを追加して、目標達成への道筋を可視化しましょう</p>
+                    <button class="milestone-add-btn-inline">+ マイルストーンを追加</button>
                 </div>
             `;
             
-            const addBtn = grid.querySelector('.milestone-cards-add-btn');
+            const addBtn = expansionContainer.querySelector('.milestone-add-btn-inline');
             if (addBtn) {
-                addBtn.addEventListener('click', () => {
-                    overlay.remove();
+                addBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
                     stateManager.state.currentVisionId = vision.id;
                     UI.showMilestoneModal();
                 });
             }
         } else {
+            // タイムラインボタン
+            const timelineBtn = document.createElement('div');
+            timelineBtn.className = 'milestone-timeline-btn-wrapper';
+            timelineBtn.innerHTML = `
+                <button class="milestone-timeline-btn">
+                    <span class="timeline-icon">📊</span>
+                    <span>タイムラインで詳細を見る</span>
+                </button>
+            `;
+            timelineBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                stateManager.state.currentVisionId = vision.id;
+                try { history.pushState({ view: 'timeline', visionId: vision.id }, '', '#v/' + vision.id); } catch {}
+                UI.renderApp();
+            });
+            expansionContainer.appendChild(timelineBtn);
+            
+            // マイルストーンリスト
+            const milestoneList = document.createElement('div');
+            milestoneList.className = 'milestone-list';
+            
             // マイルストーンをソート（開始日順）
             const sortedMilestones = [...vision.milestones].sort((a, b) => {
                 const dateA = new Date(a.startDate || '9999-12-31');
@@ -744,105 +746,137 @@ class UI {
                 return dateA - dateB;
             });
             
-            sortedMilestones.forEach(milestone => {
-                const card = document.createElement('div');
-                card.className = 'milestone-card-item';
-                card.dataset.color = milestone.color || 0;
+            sortedMilestones.forEach((milestone, index) => {
+                const item = document.createElement('div');
+                item.className = 'milestone-item';
                 
                 const startDays = DateUtil.daysUntil(milestone.startDate);
                 const endDays = DateUtil.daysUntil(milestone.endDate);
-                const status = startDays > 0 ? 'future' : (endDays < 0 ? 'past' : 'current');
+                const progress = this.calculateProgress(milestone.startDate, milestone.endDate);
                 
-                // カラーパレット定義
+                // カラーパレット
                 const colors = [
-                    { bg: '#EEF2FF', border: '#C7D2FE', text: '#4C1D95' },
-                    { bg: '#FEF2F2', border: '#FECACA', text: '#991B1B' },
-                    { bg: '#F0FDF4', border: '#BBF7D0', text: '#14532D' },
-                    { bg: '#FEF3C7', border: '#FDE68A', text: '#78350F' },
-                    { bg: '#EFF6FF', border: '#BFDBFE', text: '#1E3A8A' },
-                    { bg: '#FDF2F8', border: '#FBCFE8', text: '#831843' },
-                    { bg: '#F5F3FF', border: '#DDD6FE', text: '#4C1D95' },
-                    { bg: '#ECFDF5', border: '#A7F3D0', text: '#064E3B' }
+                    { primary: '#7C3AED', light: '#EDE9FE', dark: '#5B21B6' },
+                    { primary: '#DC2626', light: '#FEE2E2', dark: '#991B1B' },
+                    { primary: '#059669', light: '#D1FAE5', dark: '#047857' },
+                    { primary: '#F59E0B', light: '#FEF3C7', dark: '#D97706' },
+                    { primary: '#3B82F6', light: '#DBEAFE', dark: '#1D4ED8' },
+                    { primary: '#EC4899', light: '#FCE7F3', dark: '#BE185D' },
+                    { primary: '#8B5CF6', light: '#EDE9FE', dark: '#6D28D9' },
+                    { primary: '#10B981', light: '#D1FAE5', dark: '#059669' }
                 ];
                 
-                const colorStyle = colors[milestone.color || 0];
-                card.style.background = colorStyle.bg;
-                card.style.borderColor = colorStyle.border;
-                card.style.setProperty('--milestone-text-color', colorStyle.text);
+                const color = colors[milestone.color || 0];
                 
-                const periodText = `${DateUtil.formatForDisplay(milestone.startDate, 'day')} 〜 ${DateUtil.formatForDisplay(milestone.endDate, 'day')}`;
-                const daysText = startDays > 0 ? `開始まで${startDays}日` : 
-                               endDays < 0 ? `完了から${Math.abs(endDays)}日` : 
-                               `残り${endDays}日`;
+                // ステータスの判定
+                let statusIcon, statusText, statusClass;
+                if (startDays > 0) {
+                    statusIcon = '⏳';
+                    statusText = `開始まで${startDays}日`;
+                    statusClass = 'future';
+                } else if (endDays < 0) {
+                    statusIcon = '✅';
+                    statusText = `完了`;
+                    statusClass = 'completed';
+                } else {
+                    statusIcon = '🔥';
+                    statusText = `あと${endDays}日`;
+                    statusClass = 'active';
+                }
                 
-                card.innerHTML = `
-                    <div class="milestone-card-status ${status}">
-                        <span class="milestone-card-status-dot"></span>
-                        <span class="milestone-card-status-text">${daysText}</span>
+                item.innerHTML = `
+                    <div class="milestone-item-header">
+                        <div class="milestone-number" style="background: ${color.light}; color: ${color.dark};">${index + 1}</div>
+                        <div class="milestone-item-content">
+                            <h4 class="milestone-item-title">${milestone.title}</h4>
+                            <div class="milestone-item-meta">
+                                <span class="milestone-period">
+                                    ${DateUtil.formatForDisplay(milestone.startDate, 'day')} 〜 ${DateUtil.formatForDisplay(milestone.endDate, 'day')}
+                                </span>
+                                <span class="milestone-status ${statusClass}">
+                                    <span class="status-icon">${statusIcon}</span>
+                                    <span class="status-text">${statusText}</span>
+                                </span>
+                            </div>
+                            ${milestone.description ? `<p class="milestone-item-desc">${milestone.description}</p>` : ''}
+                        </div>
+                        <div class="milestone-item-actions">
+                            <button class="milestone-edit-btn" data-id="${milestone.id}">
+                                <span class="edit-icon">✏️</span>
+                            </button>
+                        </div>
                     </div>
-                    <h3 class="milestone-card-title">${milestone.title}</h3>
-                    <div class="milestone-card-period">${periodText}</div>
-                    ${milestone.description ? `<p class="milestone-card-desc">${milestone.description}</p>` : ''}
-                    <div class="milestone-card-footer">
-                        <button class="milestone-card-edit">編集</button>
-                        <span class="milestone-card-duration">${DateUtil.getDaysBetween(milestone.startDate, milestone.endDate)}日間</span>
+                    <div class="milestone-progress-bar">
+                        <div class="milestone-progress-track">
+                            <div class="milestone-progress-fill" style="width: ${progress}%; background: linear-gradient(90deg, ${color.primary}, ${color.dark});"></div>
+                        </div>
+                        <span class="milestone-progress-text">${progress}%</span>
                     </div>
                 `;
                 
-                // カードクリックでモーダルを開く
-                card.addEventListener('click', (e) => {
-                    if (!e.target.classList.contains('milestone-card-edit')) {
-                        overlay.remove();
-                        stateManager.state.currentVisionId = vision.id;
-                        this.showMilestoneModal(milestone);
-                    }
-                });
-                
-                // 編集ボタンクリック
-                const editBtn = card.querySelector('.milestone-card-edit');
+                // 編集ボタン
+                const editBtn = item.querySelector('.milestone-edit-btn');
                 if (editBtn) {
                     editBtn.addEventListener('click', (e) => {
                         e.stopPropagation();
-                        overlay.remove();
                         stateManager.state.currentVisionId = vision.id;
-                        this.showMilestoneModal(milestone);
+                        const ms = vision.milestones.find(m => m.id === editBtn.dataset.id);
+                        UI.showMilestoneModal(ms);
                     });
                 }
                 
-                grid.appendChild(card);
+                // アイテムクリックでも編集
+                item.addEventListener('click', (e) => {
+                    if (!e.target.closest('.milestone-edit-btn')) {
+                        e.stopPropagation();
+                        stateManager.state.currentVisionId = vision.id;
+                        UI.showMilestoneModal(milestone);
+                    }
+                });
+                
+                milestoneList.appendChild(item);
             });
             
+            expansionContainer.appendChild(milestoneList);
+            
             // 新規追加ボタン
-            const addCard = document.createElement('div');
-            addCard.className = 'milestone-card-item milestone-card-add';
-            addCard.innerHTML = `
-                <span class="milestone-card-add-icon">+</span>
-                <span class="milestone-card-add-text">マイルストーンを追加</span>
+            const addButton = document.createElement('div');
+            addButton.className = 'milestone-add-footer';
+            addButton.innerHTML = `
+                <button class="milestone-add-btn-inline">
+                    <span class="add-icon">+</span>
+                    <span>新しいマイルストーンを追加</span>
+                </button>
             `;
-            addCard.addEventListener('click', () => {
-                overlay.remove();
+            addButton.addEventListener('click', (e) => {
+                e.stopPropagation();
                 stateManager.state.currentVisionId = vision.id;
-                this.showMilestoneModal();
+                UI.showMilestoneModal();
             });
-            grid.appendChild(addCard);
+            expansionContainer.appendChild(addButton);
         }
         
-        // クローズボタンのイベント
-        header.querySelector('.milestone-cards-close').addEventListener('click', () => {
-            overlay.remove();
-        });
+        // カードに追加してアニメーション
+        card.appendChild(expansionContainer);
+        card.classList.add('expanded');
         
-        // コンテナに追加
-        container.appendChild(header);
-        container.appendChild(timelineBtn);
-        container.appendChild(grid);
-        overlay.appendChild(container);
-        
-        // ドキュメントに追加（アニメーション用）
-        document.body.appendChild(overlay);
+        // 高さをアニメーション
         requestAnimationFrame(() => {
-            overlay.classList.add('active');
+            expansionContainer.style.maxHeight = expansionContainer.scrollHeight + 'px';
         });
+    }
+    
+    static calculateProgress(startDate, endDate) {
+        const today = new Date();
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        
+        if (today < start) return 0;
+        if (today > end) return 100;
+        
+        const total = end - start;
+        const elapsed = today - start;
+        return Math.round((elapsed / total) * 100);
     }
     
     static adjustAllMilestoneLabels() {
@@ -960,10 +994,8 @@ class UI {
                 lastTap = now;
                 
                 clickTimer = setTimeout(() => {
-                    // マイルストーンカードビューをトグル表示
-                    const id = card.dataset.id;
-                    const vision = stateManager.state.visions.find(v => v.id === id);
-                    this.showMilestoneCards(vision, card);
+                    // マイルストーンを展開表示
+                    this.toggleMilestoneExpansion(card);
                 }, 250);
             };
             
