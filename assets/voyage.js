@@ -482,6 +482,10 @@ class UI {
                 <div class="vision-card-meta">
                     <span class="chip due">📅 ${dueShort}</span>
                     <span class="chip count">📍 ${vision.milestones.length}個</span>
+                    <button class="vision-expand-btn" data-id="${vision.id}">
+                        <span class="expand-icon">▼</span>
+                        <span class="expand-text">詳細</span>
+                    </button>
                 </div>
                 ${noteHtml}
             </div>`;
@@ -681,6 +685,13 @@ class UI {
             card.classList.remove('expanded');
             expansionContainer.style.maxHeight = '0';
             setTimeout(() => expansionContainer.remove(), 300);
+            
+            // ボタンを更新
+            const expandBtn = card.querySelector('.vision-expand-btn');
+            if (expandBtn) {
+                expandBtn.querySelector('.expand-icon').textContent = '▼';
+                expandBtn.querySelector('.expand-text').textContent = '詳細';
+            }
             return;
         }
         
@@ -692,6 +703,12 @@ class UI {
                 if (otherExpansion) {
                     otherExpansion.style.maxHeight = '0';
                     setTimeout(() => otherExpansion.remove(), 300);
+                }
+                // 他のボタンもリセット
+                const otherBtn = otherCard.querySelector('.vision-expand-btn');
+                if (otherBtn) {
+                    otherBtn.querySelector('.expand-icon').textContent = '▼';
+                    otherBtn.querySelector('.expand-text').textContent = '詳細';
                 }
             }
         });
@@ -771,8 +788,10 @@ class UI {
                 // ステータスの判定
                 let statusIcon, statusText, statusClass;
                 if (startDays > 0) {
+                    // 開始前は期間を表示
+                    const duration = DateUtil.getDaysBetween(milestone.startDate, milestone.endDate);
                     statusIcon = '⏳';
-                    statusText = `開始まで${startDays}日`;
+                    statusText = `${startDays}日後〜${startDays + duration}日後`;
                     statusClass = 'future';
                 } else if (endDays < 0) {
                     statusIcon = '✅';
@@ -973,44 +992,35 @@ class UI {
             toggleMenu(false);
         });
         
-        document.querySelectorAll('.vision-card').forEach(card => {
-            let clickTimer = null;
-            let lastTap = 0;
-            
-            const handleSingleClick = (e) => {
+        // 展開ボタンのイベント
+        document.querySelectorAll('.vision-expand-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                clearTimeout(clickTimer);
-                const now = Date.now();
+                const card = btn.closest('.vision-card');
+                this.toggleMilestoneExpansion(card);
                 
-                // ダブルタップ検出（モバイル対応）
-                if (now - lastTap < 300) {
+                // ボタンのテキストとアイコンを更新
+                const icon = btn.querySelector('.expand-icon');
+                const text = btn.querySelector('.expand-text');
+                if (card.classList.contains('expanded')) {
+                    icon.textContent = '▲';
+                    text.textContent = '閉じる';
+                } else {
+                    icon.textContent = '▼';
+                    text.textContent = '詳細';
+                }
+            });
+        });
+        
+        // カードのダブルクリックで編集
+        document.querySelectorAll('.vision-card').forEach(card => {
+            card.addEventListener('dblclick', (e) => {
+                if (!e.target.closest('.vision-expand-btn') && !e.target.closest('.milestone-expansion')) {
+                    e.preventDefault();
                     const id = card.dataset.id;
                     const vision = stateManager.state.visions.find(v => v.id === id);
                     this.showVisionModal(vision);
-                    lastTap = 0;
-                    return;
                 }
-                
-                lastTap = now;
-                
-                clickTimer = setTimeout(() => {
-                    // マイルストーンを展開表示
-                    this.toggleMilestoneExpansion(card);
-                }, 250);
-            };
-            
-            card.addEventListener('click', handleSingleClick);
-            card.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                handleSingleClick(e);
-            });
-            
-            card.addEventListener('dblclick', (e) => {
-                e.preventDefault();
-                clearTimeout(clickTimer);
-                const id = card.dataset.id;
-                const vision = stateManager.state.visions.find(v => v.id === id);
-                this.showVisionModal(vision);
             });
         });
     }
