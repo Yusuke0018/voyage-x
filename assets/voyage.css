@@ -198,6 +198,19 @@ body[data-theme="light"] {
     word-break: break-word;
 }
 .vision-card-note .note-icon { margin-right: 8px; opacity: 0.7; font-size: 15px; }
+
+/* ===== Vision labels (top list) ===== */
+.vision-labels { display: flex; flex-wrap: wrap; gap: 10px; margin: 6px 0 18px; }
+.vision-chip { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 999px; border: 1px solid rgba(59,130,246,0.18); background: #FFFFFF; color: #0F172A; font-size: 13px; cursor: pointer; transition: box-shadow 0.2s ease, transform 0.1s ease; }
+.vision-chip:hover { box-shadow: 0 3px 10px rgba(0,0,0,0.08); transform: translateY(-1px); }
+.vision-chip .name { font-weight: 700; }
+.vision-chip .delta { opacity: 0.85; }
+.vision-chip .delta.future { color: #1D4ED8; }
+.vision-chip .delta.past { color: #6B7280; }
+
+/* Highlight target card briefly */
+@keyframes flashPulse { 0% { box-shadow: 0 0 0 rgba(59,130,246,0); } 50% { box-shadow: 0 0 0 6px rgba(59,130,246,0.25); } 100% { box-shadow: 0 0 0 rgba(59,130,246,0); } }
+.vision-card.flash { animation: flashPulse 0.9s ease; }
 .vision-card-note .note-text { opacity: 0.9; }
 
 [data-theme="dark"] .vision-card-note { color: rgba(224,230,237,0.85); }

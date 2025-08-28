@@ -440,10 +440,12 @@ class UI {
                     <p>あなたの目標への道のりを美しく可視化</p>
                     <button class="hero-button" id="addVision">✨ 新しいビジョンを作成</button>
                 </div>
+                <div class="vision-labels" id="visionLabels"></div>
                 <div class="visions-grid" id="visionList"></div>
             </div>
         `;
         
+        this.renderVisionLabels();
         this.renderVisionList();
         this.attachHomeListeners();
     }
@@ -462,7 +464,8 @@ class UI {
             return;
         }
         
-        list.innerHTML = stateManager.state.visions.map(vision => {
+        const visions = UI.getVisionsSortedByProximity();
+        list.innerHTML = visions.map(vision => {
             const days = DateUtil.daysUntil(vision.dueDate);
             const daysClass = days >= 0 ? 'future' : 'past';
             const iso = vision.dueDate || '';
@@ -490,6 +493,29 @@ class UI {
                 ${noteHtml}
             </div>`;
         }).join('');
+    }
+
+    static renderVisionLabels() {
+        const wrap = document.getElementById('visionLabels');
+        if (!wrap) return;
+        if (stateManager.state.visions.length === 0) { wrap.innerHTML = ''; return; }
+        const visions = UI.getVisionsSortedByProximity();
+        wrap.innerHTML = visions.map(v => {
+            const d = DateUtil.daysUntil(v.dueDate);
+            const text = d >= 0 ? `あと${d}日` : `${Math.abs(d)}日超過`;
+            const cls = d >= 0 ? 'future' : 'past';
+            return `<button class="vision-chip" data-id="${v.id}"><span class="name">${v.title}</span><span class="delta ${cls}">${text}</span></button>`;
+        }).join('');
+    }
+
+    static getVisionsSortedByProximity() {
+        const arr = [...stateManager.state.visions];
+        const today = new Date();
+        const sISO = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+        const withDays = arr.map(v => ({ v, days: DateUtil.getDaysBetween(sISO, v.dueDate) }));
+        const future = withDays.filter(x => x.days >= 0).sort((a,b) => a.days - b.days);
+        const past = withDays.filter(x => x.days < 0).sort((a,b) => Math.abs(a.days) - Math.abs(b.days));
+        return future.concat(past).map(x => x.v);
     }
     
     static renderTimeline(container) {
@@ -990,6 +1016,19 @@ class UI {
             }
             e.target.value = '';
             toggleMenu(false);
+        });
+        
+        // 上部ラベル（チップ）から対象カードへスクロール
+        document.querySelectorAll('.vision-chip').forEach(chip => {
+            chip.addEventListener('click', (e) => {
+                const id = chip.getAttribute('data-id');
+                const card = document.querySelector(`.vision-card[data-id="${id}"]`);
+                if (card) {
+                    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    card.classList.add('flash');
+                    setTimeout(() => card.classList.remove('flash'), 900);
+                }
+            });
         });
         
         // 展開ボタンのイベント
