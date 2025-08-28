@@ -198,45 +198,6 @@ body[data-theme="light"] {
     word-break: break-word;
 }
 .vision-card-note .note-icon { margin-right: 8px; opacity: 0.7; font-size: 15px; }
-
-/* ===== Birds-eye mode and toolbar ===== */
-.view-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 10px 0 18px; flex-wrap: wrap; }
-.view-toolbar .filters { display: flex; gap: 8px; flex-wrap: wrap; }
-.filter-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; font-size: 13px; border: 1px solid rgba(59,130,246,0.20); background: #FFFFFF; color: #0F172A; cursor: pointer; transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease; }
-.filter-chip:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
-.filter-chip.active { background: linear-gradient(135deg, var(--gradient-light-start), var(--gradient-light-end)); color: #fff; border-color: transparent; }
-.view-toolbar .toggles { display: flex; gap: 8px; }
-.birds-eye-toggle { padding: 8px 12px; border-radius: 10px; border: 1px solid rgba(0,0,0,0.08); background: #fff; color: #111827; cursor: pointer; font-weight: 600; }
-.birds-eye-toggle.active { background: #111827; color: #fff; }
-
-/* Birds-eye: compact cards and tighter grid */
-body[data-birds-eye="on"] .visions-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; }
-body[data-birds-eye="on"] .vision-card { padding: 16px; border-radius: 14px; }
-body[data-birds-eye="on"] .vision-card h2 { font-size: 16px; font-weight: 800; color: #0F172A; }
-body[data-birds-eye="on"] .vision-card .days-badge .num { font-size: 18px; }
-body[data-birds-eye="on"] .vision-card .vision-card-meta { margin-top: 8px; }
-body[data-birds-eye="on"] .vision-card-note { display: none; }
-
-/* Mini timeline */
-.mini-timeline { position: relative; height: 28px; border-radius: 999px; background: #F4F7FF; border: 1px solid rgba(59,130,246,0.18); overflow: hidden; display: flex; align-items: center; padding: 0 8px; gap: 6px; }
-.mini-timeline .bar { position: absolute; left: 0; right: 0; top: 0; bottom: 0; background: linear-gradient(90deg, rgba(79,70,229,0.08), rgba(118,75,162,0.08)); }
-.mini-timeline .pin { position: absolute; top: 6px; width: 10px; height: 10px; border-radius: 50%; background: #4F46E5; box-shadow: 0 0 0 2px rgba(79,70,229,0.15); transform: translateX(-50%); }
-.mini-timeline .pin.past { background: #9CA3AF; box-shadow: 0 0 0 2px rgba(156,163,175,0.25); }
-.mini-timeline .today { position: absolute; top: 4px; bottom: 4px; width: 2px; background: linear-gradient(180deg, #06B6D4, #7C3AED); left: 0%; transform: translateX(-50%); opacity: 0.9; }
-.mini-timeline .label { position: absolute; bottom: 2px; font-size: 10px; color: #374151; transform: translateX(-50%); }
-
-/* Bottom sheet for vision quick view */
-.sheet-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.28); opacity: 0; transition: opacity 0.2s ease; z-index: 1000; }
-.sheet { position: fixed; left: 0; right: 0; bottom: 0; background: var(--card, #fff); border-top-left-radius: 16px; border-top-right-radius: 16px; box-shadow: 0 -10px 30px rgba(0,0,0,0.18); transform: translateY(100%); transition: transform 0.25s ease; z-index: 1001; padding: 16px 16px 24px; max-height: 70vh; overflow: auto; }
-.sheet.active { transform: translateY(0); }
-.sheet-backdrop.active { opacity: 1; }
-.sheet .sheet-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
-.sheet .sheet-title { font-size: 18px; font-weight: 800; }
-.sheet .close-btn { border: none; background: transparent; font-size: 20px; cursor: pointer; line-height: 1; }
-.sheet .sheet-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
-.sheet .sheet-actions { display: flex; gap: 12px; margin-top: 12px; }
-.sheet .primary { background: linear-gradient(135deg, var(--gradient-light-start), var(--gradient-light-end)); color: #fff; border: none; padding: 10px 14px; border-radius: 10px; font-weight: 700; }
-.sheet .secondary { background: #F3F4F6; color: #111827; border: none; padding: 10px 14px; border-radius: 10px; font-weight: 700; }
 .vision-card-note .note-text { opacity: 0.9; }
 
 [data-theme="dark"] .vision-card-note { color: rgba(224,230,237,0.85); }
