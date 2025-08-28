@@ -402,7 +402,15 @@ class UI {
         if (!stateManager.state.theme) {
             stateManager.state.theme = 'light';
         }
+        // ホームUI状態の初期値
+        if (typeof stateManager.state.homeBirdsEye === 'undefined') {
+            stateManager.state.homeBirdsEye = false;
+        }
+        if (typeof stateManager.state.homeFilter === 'undefined') {
+            stateManager.state.homeFilter = 'all'; // all | week | month | quarter
+        }
         document.body.setAttribute('data-theme', stateManager.state.theme);
+        document.body.setAttribute('data-birds-eye', stateManager.state.homeBirdsEye ? 'on' : 'off');
         this.renderApp();
         // 白基調へ統一のためテーマトグルは無効化
     }
@@ -426,6 +434,7 @@ class UI {
                     <div class="brand" id="brandButton"><span class="brand-mark"></span>Voyage</div>
                     <div class="header-actions">
                         <button id="addVisionHeader">新しいビジョン</button>
+                        <button id="birdsEyeToggle" class="birds-eye-toggle ${stateManager.state.homeBirdsEye ? 'active' : ''}">👁️ 俯瞰</button>
                     </div>
                     <div class="brand-menu" id="brandMenu" aria-hidden="true">
                         <button id="menuExport">📥 データをエクスポート</button>
@@ -440,10 +449,21 @@ class UI {
                     <p>あなたの目標への道のりを美しく可視化</p>
                     <button class="hero-button" id="addVision">✨ 新しいビジョンを作成</button>
                 </div>
+                <div class="view-toolbar">
+                    <div class="filters">
+                        <button class="filter-chip ${stateManager.state.homeFilter === 'all' ? 'active' : ''}" data-filter="all">すべて</button>
+                        <button class="filter-chip ${stateManager.state.homeFilter === 'week' ? 'active' : ''}" data-filter="week">今週</button>
+                        <button class="filter-chip ${stateManager.state.homeFilter === 'month' ? 'active' : ''}" data-filter="month">今月</button>
+                        <button class="filter-chip ${stateManager.state.homeFilter === 'quarter' ? 'active' : ''}" data-filter="quarter">四半期</button>
+                    </div>
+                    <div class="toggles"></div>
+                </div>
+                <div class="mini-timeline" id="miniTimeline"><div class="bar"></div></div>
                 <div class="visions-grid" id="visionList"></div>
             </div>
         `;
         
+        this.renderMiniTimeline();
         this.renderVisionList();
         this.attachHomeListeners();
     }
@@ -462,7 +482,8 @@ class UI {
             return;
         }
         
-        list.innerHTML = stateManager.state.visions.map(vision => {
+        const visions = this.getFilteredVisions();
+        list.innerHTML = visions.map(vision => {
             const days = DateUtil.daysUntil(vision.dueDate);
             const daysClass = days >= 0 ? 'future' : 'past';
             const iso = vision.dueDate || '';
@@ -490,6 +511,58 @@ class UI {
                 ${noteHtml}
             </div>`;
         }).join('');
+    }
+
+    static getFilteredVisions() {
+        const filter = stateManager.state.homeFilter || 'all';
+        const visions = [...stateManager.state.visions];
+        if (filter === 'all') return visions;
+        const today = new Date();
+        const startISO = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+        let end = new Date(today);
+        if (filter === 'week') {
+            end.setDate(end.getDate() + 6);
+        } else if (filter === 'month') {
+            end.setMonth(end.getMonth() + 1);
+        } else if (filter === 'quarter') {
+            end.setMonth(end.getMonth() + 3);
+        }
+        const endISO = `${end.getFullYear()}-${String(end.getMonth()+1).padStart(2,'0')}-${String(end.getDate()).padStart(2,'0')}`;
+        return visions.filter(v => {
+            return DateUtil.getDaysBetween(startISO, v.dueDate) >= 0 && DateUtil.getDaysBetween(v.dueDate, endISO) >= 0;
+        });
+    }
+
+    static renderMiniTimeline() {
+        const wrap = document.getElementById('miniTimeline');
+        if (!wrap) return;
+        wrap.innerHTML = '<div class="bar"></div>';
+        const visions = this.getFilteredVisions();
+        if (visions.length === 0) return;
+        const today = new Date();
+        const minDue = visions.reduce((min, v) => Math.min(min, new Date(v.dueDate).getTime() || Infinity), Infinity);
+        const maxDue = visions.reduce((max, v) => Math.max(max, new Date(v.dueDate).getTime() || 0), 0);
+        const rangeStart = Math.min(today.getTime(), minDue) - 7*24*60*60*1000;
+        const rangeEnd = Math.max(today.getTime(), maxDue) + 7*24*60*60*1000;
+        const range = Math.max(1, rangeEnd - rangeStart);
+        // today marker
+        const todayPos = Math.min(100, Math.max(0, ((today.getTime() - rangeStart) / range) * 100));
+        const todayEl = document.createElement('div');
+        todayEl.className = 'today';
+        todayEl.style.left = todayPos + '%';
+        wrap.appendChild(todayEl);
+        // pins
+        visions.forEach(v => {
+            const t = new Date(v.dueDate).getTime();
+            if (!t) return;
+            const pos = Math.min(100, Math.max(0, ((t - rangeStart) / range) * 100));
+            const pin = document.createElement('div');
+            const days = DateUtil.daysUntil(v.dueDate);
+            pin.className = 'pin ' + (days < 0 ? 'past' : 'future');
+            pin.style.left = pos + '%';
+            pin.title = v.title;
+            wrap.appendChild(pin);
+        });
     }
     
     static renderTimeline(container) {
@@ -952,6 +1025,31 @@ class UI {
         });
         const addHead = document.getElementById('addVisionHeader');
         if (addHead) addHead.addEventListener('click', () => this.showVisionModal());
+
+        // 俯瞰モードトグル
+        const birdsEyeBtn = document.getElementById('birdsEyeToggle');
+        if (birdsEyeBtn) {
+            birdsEyeBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                stateManager.state.homeBirdsEye = !stateManager.state.homeBirdsEye;
+                document.body.setAttribute('data-birds-eye', stateManager.state.homeBirdsEye ? 'on' : 'off');
+                stateManager.save();
+                birdsEyeBtn.classList.toggle('active', stateManager.state.homeBirdsEye);
+            });
+        }
+
+        // 期間フィルタ
+        document.querySelectorAll('.filter-chip').forEach(chip => {
+            chip.addEventListener('click', (e) => {
+                const f = e.currentTarget.getAttribute('data-filter');
+                stateManager.state.homeFilter = f || 'all';
+                stateManager.save();
+                document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+                e.currentTarget.classList.add('active');
+                UI.renderMiniTimeline();
+                UI.renderVisionList();
+            });
+        });
         
         // 左上ブランドメニュー（インポート/エクスポート）
         const brandBtn = document.getElementById('brandButton');
@@ -1012,8 +1110,15 @@ class UI {
             });
         });
         
-        // カードのダブルクリックで編集
+        // カードのタップでボトムシート、ダブルクリックで編集
         document.querySelectorAll('.vision-card').forEach(card => {
+            card.addEventListener('click', (e) => {
+                if (!e.target.closest('.vision-expand-btn') && !e.target.closest('.milestone-expansion')) {
+                    const id = card.dataset.id;
+                    const vision = stateManager.state.visions.find(v => v.id === id);
+                    if (vision) UI.showVisionSheet(vision);
+                }
+            });
             card.addEventListener('dblclick', (e) => {
                 if (!e.target.closest('.vision-expand-btn') && !e.target.closest('.milestone-expansion')) {
                     e.preventDefault();
@@ -1022,6 +1127,50 @@ class UI {
                     this.showVisionModal(vision);
                 }
             });
+        });
+    }
+
+    static showVisionSheet(vision) {
+        const backdrop = document.createElement('div');
+        backdrop.className = 'sheet-backdrop';
+        const sheet = document.createElement('div');
+        sheet.className = 'sheet';
+        const days = DateUtil.daysUntil(vision.dueDate);
+        const daysText = days >= 0 ? `あと${days}日` : `${Math.abs(days)}日超過`;
+        const due = DateUtil.formatForDisplay(vision.dueDate, 'day');
+        sheet.innerHTML = `
+            <div class="sheet-header">
+                <div class="sheet-title">${vision.title}</div>
+                <button class="close-btn" aria-label="閉じる">✕</button>
+            </div>
+            <div class="sheet-meta">
+                <span class="chip">📅 ${due}</span>
+                <span class="chip">📍 ${vision.milestones.length}個</span>
+                <span class="chip">⏱ ${daysText}</span>
+            </div>
+            ${vision.completionNote ? `<div class="vision-card-note">📝 ${vision.completionNote.replace(/\n/g,' ')}</div>` : ''}
+            <div class="sheet-actions">
+                <button class="primary" id="openTimeline">タイムラインへ</button>
+                <button class="secondary" id="editVision">編集</button>
+            </div>
+        `;
+        const close = () => {
+            backdrop.classList.remove('active');
+            sheet.classList.remove('active');
+            setTimeout(() => { backdrop.remove(); sheet.remove(); }, 180);
+        };
+        document.body.appendChild(backdrop);
+        document.body.appendChild(sheet);
+        requestAnimationFrame(() => { backdrop.classList.add('active'); sheet.classList.add('active'); });
+        backdrop.addEventListener('click', close);
+        sheet.querySelector('.close-btn').addEventListener('click', close);
+        sheet.querySelector('#openTimeline').addEventListener('click', () => {
+            stateManager.state.currentVisionId = vision.id;
+            try { history.pushState({ view: 'timeline', visionId: vision.id }, '', '#v/' + vision.id); } catch {}
+            UI.renderApp();
+        });
+        sheet.querySelector('#editVision').addEventListener('click', () => {
+            UI.showVisionModal(vision);
         });
     }
     
