@@ -794,7 +794,7 @@ class UI {
                 item.className = 'milestone-item';
                 
                 const startDays = DateUtil.daysUntil(milestone.startDate);
-                const endDays = DateUtil.daysUntil(milestone.endDate);
+                const endDays = DateUtil.daysUntil(milestone.endDate || milestone.startDate);
                 const progress = this.calculateProgress(milestone.startDate, milestone.endDate);
                 
                 // カラーパレット
@@ -814,10 +814,15 @@ class UI {
                 // ステータスの判定
                 let statusIcon, statusText, statusClass;
                 if (startDays > 0) {
-                    // 開始前は期間を表示
-                    const duration = DateUtil.getDaysBetween(milestone.startDate, milestone.endDate);
+                    // 開始前は期間を表示（単日は「〜NaN」回避して「〜まで」表記）
                     statusIcon = '⏳';
-                    statusText = `${startDays}日後〜${startDays + duration}日後`;
+                    if (!milestone.endDate || milestone.type === 'day') {
+                        statusText = `${startDays}日後まで`;
+                    } else {
+                        const duration = DateUtil.getDaysBetween(milestone.startDate, milestone.endDate);
+                        const endInDays = startDays + Math.max(0, duration);
+                        statusText = `${startDays}日後〜${endInDays}日後`;
+                    }
                     statusClass = 'future';
                 } else if (endDays < 0) {
                     statusIcon = '✅';
